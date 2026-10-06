@@ -1,0 +1,66 @@
+# FreeTheDream — a collective mind map of the community's projects.
+#
+# Kashka's map (repo Kashka-25/free-the-dream-map) of how YOU, Kronk,
+# Anthemos, Mayhem, SoulRise, Empatherapy, CommYOUnity, the Space and
+# new ideas connect, drawn on the YOU yin-yang with Kronk's purples on
+# the cosmos side. People drop ideas into a shared pool, an admin
+# approves them onto the map, and whoever runs a project fills in its
+# details, logo and reflections.
+#
+# This first version ships the self-contained prototype at
+# public/freethedream-preview.html, rendered through KornerIframe so it
+# can be seen on shadow. It owns no Kronk-side data yet: in the preview,
+# each person's additions stay in their own browser. The shared version
+# needs four small JSON endpoints that use Kronk accounts as members —
+# see docs/spaces/freethedream.md. Until those exist it stays
+# `enforced: false` / lifecycle `soon` under the Korner Standard.
+
+slug: freethedream
+name: FreeTheDream
+tagline: 'Every dream on one map, and how they feed each other.'
+purpose: "To show how the community's projects connect, and let people drop new ideas and run their own projects on one shared map."
+icon:
+  material: spiral
+render_target: native
+version: 0.1.0
+
+security:
+  permissions: [] # none yet — the preview stores nothing on Kronk
+  visibility: public
+  federation: none
+  maintainers: moderator
+
+resources: [] # not-implemented — see docs/spaces/freethedream.md (members/<id>, map/<doc>)
+
+storage:
+  db_namespace: # not-implemented — one JSON-document table once the endpoints land
+  media_prefix: # not-applicable — project logos are small inline images
+  redis_prefix: # not-implemented
+
+emits: []
+listens: []
+
+feed_projection:
+  card: # not-applicable — the map is the view
+  status_association: # not-applicable
+
+settings: []
+
+hub_teaser:
+  static: 'A living mind map of our projects, on the YOU yin-yang.'
+
+launch:
+  blurb: 'FreeTheDream — a collective mind map where every project feeds the others, and new ideas can join anywhere.'
+  cta: 'Open the map'
+
+feature_flag: # not-implemented
+enforced: false # prototype in an iframe; flips once the endpoints and Standard layers land
+
+nodes:
+  - id: freethedream.index
+    bucket: hub
+    parent: freethedream
+    label: FreeTheDream map
+    url: /hub/freethedream
+    lifecycle: soon
+    spa: true
