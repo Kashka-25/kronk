@@ -89,6 +89,7 @@ import {
   WachuneedListingDetail,
   WachuneedNew,
   InflowVeil,
+  FreeTheDream,
   MapV2,
   Nudges,
   NudgesConversationSettings,
@@ -478,6 +479,7 @@ class SwitchingColumnsArea extends PureComponent {
             {signedIn && <WrappedRoute path={["/questions/:id", "/hub/kuestions/:id", "/questions", "/hub/kuestions"]} component={Questions} content={children} />}
             <WrappedRoute path='/hub/search' component={KronkSearch} content={children} />
             <WrappedRoute path='/hub/you' component={YouPortal} content={children} />
+            <WrappedRoute path='/hub/freethedream' component={FreeTheDream} content={children} />
             <WrappedRoute path={['/publish', '/statuses/new']} component={Compose} content={children} />
 
             {/* Per-person settings — mute, block, remove Mate, report,

@@ -342,6 +342,10 @@ export function InflowVeil () {
   return import("../../inflow/veil");
 }
 
+export function FreeTheDream () {
+  return import("../../freethedream");
+}
+
 export function MapV2 () {
   return import("../../map_v2");
 }
