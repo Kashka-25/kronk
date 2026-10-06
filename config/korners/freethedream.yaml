@@ -1,11 +1,11 @@
-# FreeTheDream — a collective mind map of the community's projects.
+# FreeTheDream — the Dream Web.
 #
-# Kashka's map (repo Kashka-25/free-the-dream-map) of how YOU, Kronk,
-# Anthemos, Mayhem, SoulRise, Empatherapy, CommYOUnity, the Space and
-# new ideas connect, drawn on the YOU yin-yang with Kronk's purples on
-# the cosmos side. People drop ideas into a shared pool, an admin
-# approves them onto the map, and whoever runs a project fills in its
-# details, logo and reflections.
+# Kashka's Dream Web (repo Kashka-25/free-the-dream-map): community
+# dreams around FreeTheDream, drawn on the YOU yin-yang with Kronk's
+# purples on the cosmos side. A dream joins once an admin approves it;
+# guidelines keep it to dreams that involve the community (personal
+# dreams go to YOU, simple posts to the feed); whoever runs a dream fills
+# in its story, logo and reflections. A tour explains it on first visit.
 #
 # This first version ships the self-contained prototype at
 # public/freethedream-preview.html, rendered through KornerIframe so it
@@ -17,8 +17,8 @@
 
 slug: freethedream
 name: FreeTheDream
-tagline: 'Every dream on one map, and how they feed each other.'
-purpose: "To show how the community's projects connect, and let people drop new ideas and run their own projects on one shared map."
+tagline: "The Dream Web: freeing each other's dreams."
+purpose: 'To gather community dreams on one web, so people can share a dream the community can help with and run it together.'
 icon:
   material: spiral
 render_target: native
@@ -47,10 +47,10 @@ feed_projection:
 settings: []
 
 hub_teaser:
-  static: 'A living mind map of our projects, on the YOU yin-yang.'
+  static: 'Share a dream the community can help with, and watch the web grow.'
 
 launch:
-  blurb: 'FreeTheDream — a collective mind map where every project feeds the others, and new ideas can join anywhere.'
+  blurb: 'FreeTheDream — the Dream Web, where community dreams join one at a time and every one feeds the others.'
   cta: 'Open the map'
 
 feature_flag: # not-implemented

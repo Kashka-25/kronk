@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
 <style>
-/* Layout: the YOU "O" as a living map — golden spiral or web of influence — with a reading panel beside it; ideas from the group join on open seeds. */
+/* Layout: the YOU "O" as a living map — The Great Web or the golden spiral — with a reading panel beside it; ideas from the group join on open seeds. */
 :root {
   --bg: #F3F8F7;
   --surface: #FCFEFD;
@@ -161,6 +161,35 @@ label.mini { display: inline-block; }
 .l-shadow { fill: rgba(0, 0, 0, 0.45); stroke: none; }
 .l-gloss { stroke: none; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } .lift { transition: none; } }
+.addbtn[aria-current="page"] { border-style: solid; border-color: var(--gold); background: var(--surface-2); box-shadow: inset 0 -3px 0 var(--gold); }
+.addbtn.share[aria-current="page"] { background: var(--accent); box-shadow: inset 0 -3px 0 var(--gold-hi); }
+.panel h2:focus { outline: none; }
+.panel h2:focus-visible { outline: 3px solid var(--kronk); outline-offset: 4px; border-radius: 4px; }
+.addbtn.share { background: var(--accent); color: var(--on-accent); border: 1px solid transparent; }
+.addbtn.share:hover { background: var(--accent); filter: brightness(1.12); }
+.empty-web text { font: italic 600 30px var(--font-display); fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 6px; }
+.empty-web text.sub { font: 500 18px var(--font-body); font-style: normal; fill: var(--ink-2); }
+.tour-cta { all: unset; cursor: pointer; display: grid; gap: 3px; padding: 12px 14px; border-radius: var(--r-m); border: 1px dashed #3FA9A5; background: color-mix(in srgb, #3FA9A5 8%, transparent); }
+.tour-cta b { font-weight: 600; color: var(--ink); } .tour-cta span { font-size: 13px; color: var(--ink-2); }
+.tour-cta:hover, .tour-cta:focus-visible { background: color-mix(in srgb, #3FA9A5 16%, transparent); }
+.tour-cta:focus-visible { outline: 3px solid var(--kronk); outline-offset: 2px; }
+.rule { padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); border-left: 3px solid var(--gold); }
+.rule.yes { border-left-color: #3FA9A5; } .rule.elsewhere { border-left-color: var(--kronk); }
+.rule ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; } .rule a { color: var(--gold); font-weight: 600; }
+.choices { display: grid; gap: 8px; }
+.choice { all: unset; cursor: pointer; display: grid; gap: 2px; padding: 14px 16px; border-radius: var(--r-m); border: 1px solid var(--line); background: var(--surface-2); }
+.choice b { font-weight: 600; font-size: 16px; } .choice span { color: var(--ink-2); font-size: 13.5px; }
+.choice:hover, .choice:focus-visible { border-color: var(--gold); } .choice:focus-visible { outline: 3px solid var(--kronk); outline-offset: 2px; }
+.choice.go { border-color: #3FA9A5; }
+.linkbtn { all: unset; cursor: pointer; color: var(--gold); font-weight: 600; text-decoration: underline; }
+a.btn { text-decoration: none; display: inline-block; }
+.tour { position: fixed; inset: 0; z-index: 30; }
+.tour-hole { position: fixed; border-radius: var(--r-l); box-shadow: 0 0 0 9999px rgba(8, 6, 20, 0.66); border: 2px solid var(--gold-hi); pointer-events: none; }
+.tour-card { position: fixed; width: min(360px, calc(100vw - 24px)); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-l); padding: 18px; display: grid; gap: 10px; box-shadow: 0 18px 50px rgba(0,0,0,.4); }
+.tour-card h2 { font-family: var(--font-display); font-size: 28px; font-weight: 600; margin: 0; line-height: 1.05; }
+.tour-card p { margin: 0; color: var(--ink-2); }
+.tour-step { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+.tour-skip { margin-left: auto; background: transparent; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
 .legend span { display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
@@ -203,7 +232,7 @@ label.mini { display: inline-block; }
 .node .lab { transition: opacity .25s; }
 .node .lab rect { fill: var(--node); stroke-width: 1.6; }
 .node .lab text { font: 600 21px var(--font-body); fill: var(--node-ink); letter-spacing: .01em; }
-.node.idea .lab rect:not(.l-shadow):not(.l-gloss) { stroke-dasharray: 4 3; }
+
 #map.moving .lab { opacity: 0; }
 .node:focus { outline: none; }
 .node:focus-visible .ring-sel { opacity: 1; stroke-dasharray: 5 5; }
@@ -264,7 +293,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .list b { overflow-wrap: anywhere; }
 .ways { display: grid; gap: 10px; }
 .ways div { display: grid; gap: 2px; padding-left: 12px; border-left: 2px solid var(--gold); }
-.ways div + div { border-left-color: #3FA9A5; }
+#map .spiral, #map .seeds { display: none; }
+.ways div:first-child { border-left-color: #3FA9A5; }
+.ways div + div { border-left-color: var(--gold); }
 
 form.add { display: grid; gap: 14px; }
 .field { display: grid; gap: 5px; }
@@ -308,22 +339,19 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">A collective mind map</div>
+    <div class="eyebrow">The Dream Web</div>
     <h1>FreeTheDream <em>· how do we get there?</em></h1>
-    <p class="lede">A system where people are rewarded for following their passions and making the world better, through art. The map is the YOU "O": the ocean is each person's inner life, the cosmos is the shared life of the Kronk community. There is no fixed order. Every project feeds the others, and new ideas can join anywhere.</p>
+    <p class="lede">A system where people are rewarded for following their passions and making the world better, through heART. The Lion King is presented by the yin of YOU; the ocean that is each person's inner life. The Cosmotic Yang is the shared life of the Kronk community. There is no fixed order. Every project feeds the others, and new ideas can join anywhere. We are here to support one another in freeing each other's dreams.</p>
   </header>
 
   <div class="bar">
-    <div class="modes" role="group" aria-label="View">
-      <button id="m-spiral" type="button" aria-pressed="true">Golden spiral</button>
-      <button id="m-web" type="button" aria-pressed="false">Web of influence</button>
-    </div>
-    <button class="addbtn" id="b-drop" type="button">Idea drop</button>
+    <button class="addbtn share" id="b-drop" type="button">Share a dream</button>
+    <button class="addbtn" id="b-guide" type="button">Guidelines</button>
+    <button class="addbtn" id="b-tour" type="button">How it works</button>
     <button class="addbtn rv" id="b-review" type="button" hidden>Review</button>
   </div>
   <div class="legend" aria-label="Legend">
-    <span><svg width="26" height="6" aria-hidden="true"><line x1="1" y1="3" x2="25" y2="3" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/></svg>Golden spiral <span class="phi">grows × φ 1.618 every half turn</span></span>
-    <span><svg width="26" height="6" aria-hidden="true"><line x1="1" y1="3" x2="25" y2="3" stroke="var(--gold)" stroke-width="2"/></svg>Link in our notes</span>
+    <span><svg width="26" height="6" aria-hidden="true"><line x1="1" y1="3" x2="25" y2="3" stroke="var(--gold)" stroke-width="2"/></svg>Known link</span>
     <span><svg width="26" height="6" aria-hidden="true"><line x1="1" y1="3" x2="25" y2="3" stroke="var(--kronk)" stroke-width="2" stroke-dasharray="4 3"/></svg>Suggested link</span>
     <span><svg width="26" height="6" aria-hidden="true"><line x1="1" y1="3" x2="25" y2="3" stroke="#3FA9A5" stroke-width="2.5" stroke-dasharray="2 4" stroke-linecap="round"/></svg>Added by the group</span>
     <span><i class="dot" style="background:var(--el-water)"></i>Water</span>
@@ -361,7 +389,7 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
           <li>Build a system where people are rewarded for following their passions and for making the world a better place: <b>heART</b>.</li>
           <li>A community that supports people stepping into their passion/s, and grows into the potential of being paid to follow their art.</li>
           <li>e.g. Release a song, everyone gives $2 to back the artist pushing the edge: 100 people × $2 = <b>$200</b> for that release.</li>
-          <li>None of it is a ladder. Healing feeds art, art feeds community, community feeds healing. The spiral is one way to wander; the web shows how it all flows.</li>
+          <li>None of it is a ladder. Healing feeds art, art feeds community, community feeds healing. The web shows how it all flows.</li>
           <li>It's a space for all dreams to make the web, so there's a strong foundation for all our dreams to be set free.</li>
         </ul>
       </details>
@@ -373,6 +401,15 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
   </div>
   <footer id="foot"></footer>
   <div id="toast" class="toast" role="status" hidden></div>
+  <div id="tour" class="tour" hidden>
+    <div class="tour-hole" id="tour-hole"></div>
+    <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+      <div class="tour-step" id="tour-step"></div>
+      <h2 id="tour-title"></h2>
+      <p id="tour-text"></p>
+      <div class="nav"><button class="btn" type="button" id="tour-back">← Back</button><button class="btn primary" type="button" id="tour-next">Next →</button><button class="btn tour-skip" type="button" id="tour-skip">Skip</button></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -386,16 +423,16 @@ const SHARED_URL = "https://claude.ai/artifact/ENoQ1oreF9BEAUTTNHFakY";
 const K_PATH = "M712 1341H1313V1268L1160 1242V684L1638 1242L1525 1268V1341H1937V1268L1793 1242L1452 844L1906 100L2021 73V0H1621L1268 638L1160 551V100L1319 73V0H706V73L865 100V551L756 638L404 0H4V73L119 100L572 844L232 1242L88 1268V1341H500V1268L387 1242L865 684V1242L712 1268Z";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// ── Geometry: the orb and a golden spiral that grows by φ every half turn ──
+// ── Geometry: the orb and a golden spiral that grows by φ every full turn ──
 const BASE = { x: 0, y: 0, w: 1200, h: 1120 };
 const CX = 600, CY = 560, RIM = 420, ORBIT = 482;
-const PHI = (1 + Math.sqrt(5)) / 2, B = Math.log(PHI) / Math.PI;
-const TH0 = 27 * Math.PI / 180, R0 = 400, REND = 120, SLOTS = 9;
+const PHI = (1 + Math.sqrt(5)) / 2, B = Math.log(PHI) / (2 * Math.PI);
+const TH0 = 147 * Math.PI / 180, R0 = 360, REND = 155, SLOTS = 9;
 const rAt = th => R0 * Math.exp(-B * (th - TH0));
 const thAtR = r => TH0 + Math.log(R0 / r) / B;
 const pAt = th => ({ x: CX + rAt(th) * Math.cos(th), y: CY + rAt(th) * Math.sin(th) });
 const slotR = k => R0 - k * (R0 - REND) / (SLOTS - 1);
-const TH_CENTRE = thAtR(4);
+const TH_CENTRE = thAtR(58);  // ends at the rim of FreeTheDream
 function spiralD(a, b) {
   let p = pAt(a), d = `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
   for (let th = a + 0.01; th < b; th += 0.01) { p = pAt(th); d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`; }
@@ -426,19 +463,23 @@ const GLYPH = {
 // Each project starts with empty information. Whoever runs it (approved by an admin) fills it in on the live map.
 const BLANK = () => ({ verb: "", story: "", what: "", role: "", involve: "", reflect: "", qs: [] });
 const CORE = {
-  emp: { name: "Empatherapy", r: 40, el: "water", side: "inner", glyph: "heart", slot: 2, ...BLANK() },
-  soul: { name: "SoulRise", r: 40, el: "fire", side: "bridge", logo: "img", img: "soul", slot: 1, ...BLANK() },
-  you: { name: "YOU", r: 44, el: "ether", side: "inner", logo: "you", slot: 4, ...BLANK() },
-  comm: { name: "CommYOUnity", r: 40, el: "air", side: "inner", logo: "img", img: "comm", slot: 8, ...BLANK() },
-  anth: { name: "Anthemos", r: 42, el: "air", side: "bridge", glyph: "bridge", slot: 7, ...BLANK() },
-  kronk: { name: "Kronk", r: 46, el: "kronk", side: "outer", logo: "kronk", slot: 6, ...BLANK() },
-  mayhem: { name: "Mayhem", r: 40, el: "fire", side: "outer", logo: "img", img: "mayhem", slot: 0, ...BLANK() },
-  space: { name: "Space", r: 40, el: "earth", side: "inner", glyph: "house", slot: 3, ...BLANK() },
-  org: { name: "Organisation", r: 40, el: "earth", side: "outer", glyph: "umbrella", slot: 5, ...BLANK() },
-  ftd: { name: "FreeTheDream", r: 62, el: "gold", side: "centre", glyph: "spark", ...BLANK(), verb: "The dream is free",
-    what: "A system where people are rewarded for following their passions and for making the world a better place, through ART.",
-    role: "The heart of the O. Every project and every new idea turns towards it." },
-  fund: { name: "The $2 Push", r: 21, el: "gold", side: "side", glyph: "coin", ...BLANK() }
+  ftd: { name: "FreeTheDream", r: 62, el: "gold", side: "centre", glyph: "spark", ...BLANK(), verb: "Free each other's dreams",
+    what: "The heart and philosophy of this platform: a system where people are rewarded for following their passions and for making the world a better place, through heART.",
+    role: "Every dream on the web turns towards it. We are here to support one another in freeing each other's dreams." }
+};
+// The founding projects. None of them is on the web to begin with: an admin adds them one at a time
+// (Review → Our projects), exactly as any approved dream joins. They keep their logos and known links.
+const TEMPLATES = {
+  kronk: { name: "Kronk", r: 46, el: "kronk", side: "outer", logo: "kronk" },
+  org: { name: "Organisation", r: 40, el: "earth", side: "outer", glyph: "umbrella" },
+  you: { name: "YOU", r: 44, el: "ether", side: "inner", logo: "you" },
+  anth: { name: "Anthemos", r: 42, el: "air", side: "bridge", glyph: "bridge" },
+  comm: { name: "CommYOUnity", r: 40, el: "air", side: "inner", logo: "img", img: "comm" },
+  mayhem: { name: "Mayhem", r: 40, el: "fire", side: "outer", logo: "img", img: "mayhem" },
+  soul: { name: "SoulRise", r: 40, el: "fire", side: "bridge", logo: "img", img: "soul" },
+  space: { name: "Space", r: 40, el: "earth", side: "inner", glyph: "house" },
+  emp: { name: "Empatherapy", r: 40, el: "water", side: "inner", glyph: "heart" },
+  fund: { name: "The $2 Push", r: 30, el: "gold", side: "outer", glyph: "coin" }
 };
 const CORE_E = [
   ["you", "anth", "Your data stays yours; you choose what to share", true],
@@ -460,7 +501,7 @@ const CORE_E = [
   ["soul", "kronk", "Events shared with the Kronk community", false],
   ["org", "ftd", "Artists paid to follow their art", false],
   ["anth", "ftd", "Digital sovereignty at the heart", false]
-].map(([a, b, label, stated], i) => ({ id: "e" + i, a, b, label, kind: stated ? "stated" : "suggested" }));
+].map(([a, b, label, stated], i) => ({ id: "e" + i, a, b, label, kind: stated ? "stated" : "suggested" }));  // between templates; drawn once both are on the web
 
 // ── Collective data ──
 // members/<uid>  {drops:[idea], claims:[projectId], edits:{projectId:{…}}}  each person writes only their own
@@ -478,10 +519,10 @@ function logoOf(pid) {
   stewardsOf(pid).forEach(uid => { const m = S.members[uid]; if (m && m.logos && typeof m.logos === "object") consider(m.logos[pid]); });
   return best && typeof best.src === "string" && best.src.length < 90000 && LOGO_RE.test(best.src) ? best.src : null;
 }
-const LS_KEY = "freethedream-local-v2";
+const LS_KEY = "freethedream-basics-v1";
 const lsLoad = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); } catch { return null; } };
 const lsSave = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); return true; } catch { return false; } };
-const nameOf = by => by === me ? "you" : (names[by] || "Someone");
+const nameOf = by => by === me ? "you" : by === "founding" ? "the founding team" : (names[by] || "Someone");
 const statusOf = key => (S.decisions[key] || {}).status || "waiting";
 const stewardsOf = pid => Array.isArray(S.stewards[pid]) ? S.stewards[pid] : [];
 const canEditProject = pid => canAdd && (isAdmin || stewardsOf(pid).includes(me));
@@ -494,10 +535,11 @@ function mine() {
 }
 function cleanIdea(it, by) {
   if (!it || typeof it.name !== "string" || !it.id) return null;
-  const id = str(it.id, 40);
-  return { key: by + "~" + id, by, id, name: str(it.name, 40), what: str(it.what, 400),
+  const id = str(it.id, 40), tpl = typeof it.tpl === "string" && TEMPLATES[it.tpl] ? it.tpl : null;
+  return { key: tpl || by + "~" + id, by, id, name: str(it.name, 40), what: str(it.what, 400),
     side: SIDES.includes(it.side) ? it.side : "inner", el: ELS.includes(it.el) ? it.el : "water",
-    links: idList(it.links), seed: Number.isInteger(it.seed) ? it.seed : null, at: Number(it.at) || 0 };
+    links: idList(it.links), seed: Number.isInteger(it.seed) ? it.seed : null, at: Number(it.at) || 0,
+    community: str(it.community, 400), tpl };
 }
 function cleanEdit(ed) {
   if (!ed || typeof ed !== "object") return null;
@@ -531,12 +573,15 @@ function allClaims() {
 
 let N = {}, E = [], ORDER = [];
 function rebuild() {
-  N = {}; for (const id in CORE) N[id] = { ...CORE[id], id, core: true };
-  E = CORE_E.slice();
+  N = { ftd: { ...CORE.ftd, id: "ftd", core: true } };
+  E = [];
   const appr = S.approved.map(it => cleanIdea(it, str(it && it.by, 120))).filter(Boolean).sort((a, b) => a.at - b.at);
+  const tplKey = {};
   for (const it of appr) {
-    N[it.key] = { id: it.key, name: it.name, what: it.what, side: it.side, el: it.el, r: 32, glyph: "sprout", idea: true,
-      by: it.by, raw: it, seedPref: it.seed, verb: "", story: "", role: "", involve: "", qs: [], baseLinks: it.links };
+    const T = it.tpl ? TEMPLATES[it.tpl] : null;
+    if (T) tplKey[it.tpl] = it.key;
+    N[it.key] = { ...(T || { r: 34, glyph: "sprout" }), id: it.key, name: it.name, what: it.what, side: T ? T.side : it.side, el: T ? T.el : it.el,
+      idea: true, by: it.by, raw: it, tpl: it.tpl, verb: "", story: "", role: "", involve: it.community || "", reflect: "", qs: [], baseLinks: it.links };
   }
   for (const id in N) {
     const ed = latestEdit(id);
@@ -547,14 +592,15 @@ function rebuild() {
     n.edited = { by: ed.by, at: ed.at };
   }
   for (const id in N) N[id].logoSrc = logoOf(id);
+  const keyOf = t => t === "ftd" ? "ftd" : tplKey[t];
+  CORE_E.forEach(e => { const a = keyOf(e.a), b = keyOf(e.b); if (a && b) E.push({ ...e, a, b }); });
   const seen = new Set(E.map(e => [e.a, e.b].sort().join("|")));
   for (const id in N) (N[id].baseLinks || []).concat(N[id].extraLinks || []).forEach(l => {
     if (!N[l] || l === id) return;
     const k = [id, l].sort().join("|"); if (seen.has(k)) return; seen.add(k);
     E.push({ id: "x" + E.length, a: id, b: l, label: "Linked by the group", kind: "group" });
   });
-  const spiral = Object.keys(CORE).filter(id => CORE[id].slot != null).sort((a, b) => CORE[a].slot - CORE[b].slot);
-  ORDER = [...spiral, "ftd", "fund", ...appr.map(i => i.key)];
+  ORDER = ["ftd", ...appr.map(i => i.key)];
 }
 
 // ── Layouts ──
@@ -565,7 +611,6 @@ function layoutSpiral() {
     if (n.core && n.slot != null) { const th = thAtR(slotR(n.slot)); L[id] = { ...pAt(th), r: n.r }; }
   }
   L.ftd = { x: CX, y: CY, r: CORE.ftd.r };
-  L.fund = { x: 880, y: 560, r: CORE.fund.r };
   const ids = ORDER.filter(id => N[id].idea), orbit = [];
   ids.forEach(id => { const p = N[id].seedPref; if (p != null && free.has(p)) { free.delete(p); L[id] = { x: SEEDS[p].x, y: SEEDS[p].y, r: 32 }; } });
   ids.forEach(id => {
@@ -587,23 +632,21 @@ function layoutSpiral() {
 }
 function layoutWeb() {
   const L = { ftd: { x: CX, y: CY, r: 58 } };
-  const PIN = { outer: ["kronk", "org", "fund"], outerEnd: ["mayhem"], inner: ["emp", "space", "you", "comm"] };
-  const group = s => {
-    const all = ORDER.filter(id => id !== "ftd" && (N[id].side === s || (s === "outer" && N[id].side === "side")));
-    if (s === "outer") return [...PIN.outer.filter(id => all.includes(id)), ...all.filter(id => !PIN.outer.includes(id) && !PIN.outerEnd.includes(id)), ...PIN.outerEnd.filter(id => all.includes(id))];
-    if (s === "inner") return [...PIN.inner.filter(id => all.includes(id)), ...all.filter(id => !PIN.inner.includes(id))];
-    return all;
+  const ids = ORDER.filter(id => id !== "ftd"), R = 300;
+  const put = (id, deg, gap) => {
+    const a = deg * Math.PI / 180, n = N[id];
+    L[id] = { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a), r: Math.max(18, Math.min(n.r, gap * 0.38)) };
   };
-  const br = group("bridge"), A = [], Bb = [];
-  br.forEach(id => (id === "soul" ? Bb : id === "anth" ? A : (A.length <= Bb.length ? A : Bb)).push(id));
-  const seq = [...A, ...group("outer"), ...Bb, ...group("inner")];
-  const n = seq.length, R = 318, step = 360 / n, gap = 2 * Math.PI * R / n;
-  const start = 225 - ((A.length - 1) / 2) * step;
-  seq.forEach((id, i) => {
-    const a = (start + i * step) * Math.PI / 180;
-    const base = N[id].r;
-    L[id] = { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a), r: Math.max(16, Math.min(base * (id === "fund" ? 1.25 : 0.9), gap * 0.36)) };
-  });
+  const arc = (list, centre, span) => {
+    const k = list.length; if (!k) return;
+    const step = Math.min(44, span / k), gap = 2 * Math.PI * R * step / 360;
+    list.forEach((id, j) => put(id, centre + (j - (k - 1) / 2) * step, gap));
+  };
+  arc(ids.filter(id => N[id].side === "outer" || N[id].side === "side"), 0, 150);
+  arc(ids.filter(id => N[id].side === "inner"), 180, 150);
+  const br = ids.filter(id => N[id].side === "bridge");
+  arc(br.filter((_, i) => i % 2 === 0), -90, 50);
+  arc(br.filter((_, i) => i % 2 === 1), 90, 50);
   return L;
 }
 
@@ -626,14 +669,14 @@ defs.innerHTML = `
   <linearGradient id="g-gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>`;
 const world = mk("g", {}, svg);
 // The yin-yang spills past the rim. Stars and bubbles stream off the turning ring in four arms that grow by φ every
-// half turn, like the golden spiral inside. They move at the ring's speed, clockwise: bubbles on the ocean side,
+// turn, like the golden spiral inside. They move at the ring's speed, clockwise: bubbles on the ocean side,
 // stars on the cosmos side, morphing into each other where the arms cross over at the top and bottom.
 const SPIN_SECONDS = 100;
 (function atmosphere() {
   defs.insertAdjacentHTML("beforeend", `
     <radialGradient id="g-star"><stop offset="0" stop-color="var(--star)" stop-opacity="1"/><stop offset="1" stop-color="var(--star)" stop-opacity="0"/></radialGradient>
     <radialGradient id="g-bub" cx="0.35" cy="0.3" r="0.75"><stop offset="0" stop-color="var(--bubble-hi)"/><stop offset="0.6" stop-color="var(--bubble)" stop-opacity="0.08"/><stop offset="1" stop-color="var(--bubble)" stop-opacity="0.28"/></radialGradient>`);
-  const OMEGA = 2 * Math.PI / SPIN_SECONDS, GROW = Math.log(PHI) / Math.PI;
+  const OMEGA = 2 * Math.PI / SPIN_SECONDS, GROW = Math.log(PHI) / (2 * Math.PI);
   const R_IN = RIM + 22, R_OUT = 900, SPAN = Math.log(R_OUT / R_IN) / GROW, LIFE = SPAN / OMEGA;
   const ARMS = [45, 135, 225, 315].map(d => d * Math.PI / 180), PER = 42;
   let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -705,22 +748,26 @@ mk("circle", { cx: CX, cy: CY, r: RIM + 16, fill: "none", stroke: "url(#g-gold)"
 [0, 90, 180, 270].forEach(d => { const a = d * Math.PI / 180; mk("circle", { cx: CX + (RIM + 16) * Math.cos(a), cy: CY + (RIM + 16) * Math.sin(a), r: 2.2, fill: "url(#g-gold)", opacity: .8 }, spinRim); });
 
 const spiralG = mk("g", { class: "spiral" }, world);
-mk("path", { class: "trail-tail", d: spiralD(TH0 - 0.9, TH0).replace(/^M/, "M") }, spiralG);
+mk("path", { class: "trail-tail", d: spiralD(TH0 - 1.9, TH0).replace(/^M/, "M") }, spiralG);
 const SP = spiralD(TH0, TH_CENTRE);
 mk("path", { class: "trail-glow", d: SP }, spiralG);
 mk("path", { class: "trail-shade", d: SP }, spiralG);
 mk("path", { class: "trail-core", d: SP }, spiralG);
 // tail drawn backwards from outside the rim
-spiralG.firstChild.setAttribute("d", (() => { let d = ""; for (let th = TH0 - 0.9; th <= TH0; th += 0.01) { const p = pAt(th); d += (d ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1); } return d; })());
+spiralG.firstChild.setAttribute("d", (() => { let d = ""; for (let th = TH0 - 1.9; th <= TH0; th += 0.01) { const p = pAt(th); d += (d ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1); } return d; })());
 
 const spokeG = mk("g", { class: "spokes" }, world);
 const edgeLayer = mk("g", {}, world);
 const seedLayer = mk("g", { class: "seeds" }, world);
 const nodeLayer = mk("g", {}, world);
 const pulseLayer = mk("g", {}, world);
+const emptyNote = mk("g", { class: "empty-web" }, world);
+mk("text", { x: CX, y: CY + 112, "text-anchor": "middle" }, emptyNote).textContent = "The Dream Web is waiting for its first dream";
+mk("text", { x: CX, y: CY + 146, "text-anchor": "middle", class: "sub" }, emptyNote).textContent = "Share one, and once it's approved it appears here";
 
 let cur = {}, edgeEls = {}, nodeEls = {}, spokeEls = {}, seedEls = [];
-let view = "spiral", target = {}, morph = 1;
+let view = "web", target = {}, morph = 1;  // the basics have one view: the Dream Web
+svg.classList.add("web");
 
 function drawNode(id) {
   const n = N[id], col = EL[n.el] ? EL[n.el][1] : "var(--gold)";
@@ -779,18 +826,51 @@ function drawNode(id) {
   nodeEls[id] = g;
 }
 function measure(id) { const L = nodeEls[id]._lab, bb = L.t.getBBox(); L.w = bb.width; L.h = bb.height || 22; }
+// Each label tries a few spots around its circle, starting outward, and takes the first one clear of the other
+// circles and of the labels already placed. If none is fully clear it takes the one that overlaps least.
+let labelRects = [];
+const LABEL_TURNS = [0, 40, -40, 80, -80, 125, -125, 180].map(d => d * Math.PI / 180);
 function placeLabel(id) {
   const g = nodeEls[id], p = cur[id]; if (!p) return;
-  const n = N[id], L = g._lab;
-  let ux, uy;
-  if (id === "ftd") { ux = 0; uy = -1; } else { const dx = p.x - CX, dy = p.y - CY, l = Math.hypot(dx, dy) || 1; ux = dx / l; uy = dy / l; }
-  const d = n.r + 14 + Math.abs(ux) * L.w / 2 + Math.abs(uy) * L.h / 2;
-  const x = ux * d, y = uy * d;
+  const n = N[id], L = g._lab, s = p.r / n.r;
+  const base = id === "ftd" ? -Math.PI / 2 : Math.atan2(p.y - CY, p.x - CX);
+  const W = (L.w + 24) * s, H = (L.h + 12) * s;
+  const overlap = (box) => {
+    let o = 0;
+    for (const other of ORDER) {
+      if (other === id || !cur[other]) continue;
+      const q = cur[other], cx = Math.max(box.x, Math.min(q.x, box.x + box.w)), cy = Math.max(box.y, Math.min(q.y, box.y + box.h));
+      const gap = Math.hypot(q.x - cx, q.y - cy) - (q.r + 8);
+      if (gap < 0) o += -gap * 3;
+    }
+    for (const r of labelRects) {
+      const ox = Math.min(box.x + box.w, r.x + r.w) - Math.max(box.x, r.x), oy = Math.min(box.y + box.h, r.y + r.h) - Math.max(box.y, r.y);
+      if (ox > -4 && oy > -4) o += (ox + 4) * (oy + 4) / 40;
+    }
+    return o;
+  };
+  let best = null;
+  for (const turn of LABEL_TURNS) {
+    const a = base + turn, ux = Math.cos(a), uy = Math.sin(a);
+    const d = n.r + 14 + Math.abs(ux) * L.w / 2 + Math.abs(uy) * L.h / 2;
+    const box = { x: p.x + ux * d * s - W / 2, y: p.y + uy * d * s - H / 2, w: W, h: H };
+    const o = overlap(box);
+    if (!best || o < best.o - 0.5) best = { o, ux, uy, d, box };
+    if (o === 0) break;
+  }
+  labelRects.push(best.box);
+  const x = best.ux * best.d, y = best.uy * best.d;
   L.t.setAttribute("x", x); L.t.setAttribute("y", y);
   for (const r of [L.rect, L.gloss, L.lshadow]) {
     r.setAttribute("x", x - L.w / 2 - 12); r.setAttribute("y", y - L.h / 2 - 6 + (r === L.lshadow ? 4 : 0));
     r.setAttribute("width", L.w + 24); r.setAttribute("height", L.h + 12);
   }
+}
+function placeAllLabels() {
+  labelRects = [];
+  // the centre and the projects place first, so new ideas fit around them
+  const order = ["ftd", ...ORDER.filter(id => id !== "ftd" && !N[id].idea), ...ORDER.filter(id => N[id].idea)];
+  for (const id of order) if (nodeEls[id]) placeLabel(id);
 }
 function edgeD(e, t) {
   const a = cur[e.a], b = cur[e.b]; if (!a || !b) return "";
@@ -841,7 +921,7 @@ function layout(animate) {
   const L = view === "web" ? layoutWeb() : layoutSpiral();
   drawSeeds(L.__free || new Set());
   const from = {}; for (const id of ORDER) from[id] = cur[id] || L[id];
-  const done = () => { svg.classList.remove("moving"); for (const id of ORDER) placeLabel(id); };
+  const done = () => { svg.classList.remove("moving"); placeAllLabels(); };
   cancelAnimationFrame(morphAnim);
   if (!animate || reduce) { for (const id of ORDER) cur[id] = { ...L[id] }; applyFrame(1); done(); return; }
   svg.classList.add("moving");
@@ -976,19 +1056,19 @@ function paint() {
 function setMode(v) {
   if (view === v) return;
   view = v;
-  document.getElementById("m-spiral").setAttribute("aria-pressed", v === "spiral");
-  document.getElementById("m-web").setAttribute("aria-pressed", v === "web");
   svg.classList.toggle("web", v === "web");
   const L = v === "web" ? layoutWeb() : layoutSpiral();
   layout(true);
   if (current) flyTo(viewFor(current, L), 1000); else flyTo(BASE, 800);
 }
-document.getElementById("m-spiral").onclick = () => setMode("spiral");
-document.getElementById("m-web").onclick = () => setMode("web");
 
 function hud() {
   const w = document.getElementById("where"), next = document.getElementById("h-next");
-  if (!current) { w.innerHTML = `<b>Tap any circle</b> <span>· start anywhere</span>`; next.textContent = "Wander →"; return; }
+  if (!current) {
+    const empty = ORDER.length < 2;
+    w.innerHTML = empty ? `<b>The web is empty</b> <span>· share the first dream</span>` : `<b>Tap any circle</b> <span>· start anywhere</span>`;
+    next.textContent = "Wander →"; return;
+  }
   const n = N[current];
   w.innerHTML = `<b>${esc(n.name)}</b>${n.verb ? ` <span>· ${esc(n.verb)}</span>` : ""}`;
   next.textContent = "Next →";
@@ -1016,23 +1096,25 @@ document.addEventListener("keydown", ev => {
 function open(id) {
   if (!N[id]) return;
   editingField = null;
-  formOpen = false; current = id; hover = null; panelView = "node";
+  formOpen = false; current = id; hover = null; panelView = "node"; markTabs(); if (location.hash) setHash("");
   flyTo(viewFor(id)); renderNode(id); hud(); paint(); ripple(id);
 }
-function overview() { formOpen = false; current = null; panelView = "overview"; flyTo(BASE, 800); renderOverview(); hud(); paint(); }
-function show(viewName) { formOpen = false; current = null; panelView = viewName; paint(); hud(); renderPanel(); panel.scrollTop = 0; }
+function overview() { formOpen = false; current = null; panelView = "overview"; flyTo(BASE, 800); renderOverview(); hud(); paint(); markTabs(); setHash(""); }
+function show(viewName) { formOpen = false; current = null; panelView = viewName; paint(); hud(); renderPanel(); panel.scrollTop = 0; markTabs(); }
 function renderPanel() {
   if (formOpen) return;
   if (panelView === "node" && current && N[current]) return renderNode(current);
   if (panelView === "demo") return renderDemo();
   if (panelView === "drop") return renderDrop();
+  if (panelView === "guidelines") return renderGuidelines();
+  if (panelView === "share") return renderShareCheck();
   if (panelView === "review" && isAdmin) return renderReview();
   panelView = "overview"; renderOverview();
 }
 
 function chips(id) {
   const n = N[id], [elName, col] = EL[n.el] || ["", "var(--gold)"];
-  return `<div class="kicker">${n.idea ? `<span class="chip" style="color:#3FA9A5">New project</span>` : ""}<span class="chip" style="color:${col}">${esc(elName)}</span><span class="chip plain">${esc(SIDE[n.side] || "")}</span></div>`;
+  return `<div class="kicker">${id === "ftd" ? `<span class="chip" style="color:var(--gold)">The heart of the web</span>` : `<span class="chip" style="color:${col}">${esc(elName)}</span><span class="chip plain">${esc(SIDE[n.side] || "")}</span>`}</div>`;
 }
 function linkList(id) {
   return E.filter(e => e.a === id || e.b === id).map(e => {
@@ -1042,36 +1124,28 @@ function linkList(id) {
   }).join("");
 }
 function wire() { panel.querySelectorAll("[data-go]").forEach(b => b.onclick = () => open(b.dataset.go)); }
-const statusChip = s => s === "approved" ? `<span class="st ok">On the map</span>` : s === "declined" ? `<span class="st no">Not this time</span>` : s === "removed" ? `<span class="st no">Taken off the map</span>` : `<span class="st wait">Waiting for review</span>`;
+const statusChip = s => s === "approved" ? `<span class="st ok">On the web</span>` : s === "declined" ? `<span class="st no">Not this time</span>` : s === "removed" ? `<span class="st no">Taken off the web</span>` : `<span class="st wait">Waiting for review</span>`;
 
 function renderOverview() {
-  const onMap = ORDER.filter(id => N[id].idea);
+  const projects = ORDER.filter(id => id !== "ftd");
   const waiting = allDrops().filter(d => statusOf(d.key) === "waiting").length;
   panel.innerHTML = `
-    <div class="kicker"><span class="chip" style="color:var(--gold)">Overview</span><span class="chip plain">${Object.keys(CORE).length} projects · ${onMap.length} from the group</span></div>
-    <h2>Everything is connected</h2>
-    <p class="story">There is no fixed order. <i>Healing feeds art, art feeds community, community feeds healing,</i> and every part turns towards the dream at the heart of the O.</p>
-    <div class="ways">
-      <div><b>Golden spiral</b><span class="note">One way to wander through it all. The open circles are room for new ideas.</span></div>
-      <div><b>Web of influence</b><span class="note">Every project on one ring with every link drawn. Open any circle to send a ripple through its connections.</span></div>
-    </div>
-    ${isAdmin ? `<button class="preview-cta" type="button" id="p-demo"><b>Preview: how a project space would run</b><span>Watch Ari, Sam, Jo and Kai run Mayhem, step by step. Example people, nothing saved.</span></button>` : ""}
-    <div class="nav"><button class="btn primary" type="button" id="p-drop">Idea drop${waiting ? ` · ${waiting} waiting` : ""}</button><button class="btn" type="button" id="p-wander">Wander through</button></div>
-    <section><h3>How the map grows</h3><ol class="how">
-      <li><b>Drop an idea.</b> Anyone with access can add one to the Idea drop. Everyone can see the pool.</li>
-      <li><b>An admin reviews it.</b> An approved idea joins the map as a project like all the others, run by the person who dropped it.</li>
-      <li><b>Run your project.</b> Open your project and tap “I run this project”. Once an admin approves, you fill in its empty sections yourself, right here on the map.</li>
-    </ol>${modeNote()}</section>
-    <section><h3>New projects from the group</h3>${onMap.length ? `<ul class="list">${onMap.map(id => `<li><button type="button" data-go="${esc(id)}"><i class="dot" style="background:${(EL[N[id].el] || EL.gold)[1]}"></i><span><b>${esc(N[id].name)}</b><br><small>run by ${esc(stewardsOf(id).map(nameOf).join(", ") || nameOf(N[id].by))}</small></span></button></li>`).join("")}</ul>` : `<p class="note">Nothing yet. Approved ideas from the Idea drop join the map as projects and appear here.</p>`}</section>
-    <section><h3>The projects</h3><ul class="list">${Object.keys(CORE).map(id => `<li><button type="button" data-go="${id}"><i class="dot" style="background:${(EL[CORE[id].el])[1]}"></i><span><b>${esc(N[id].name)}</b><br><small>${stewardsOf(id).length ? "run by " + esc(stewardsOf(id).map(nameOf).join(", ")) : esc(N[id].verb || "Waiting for someone to fill it in")}</small></span></button></li>`).join("")}</ul></section>`;
+    <div class="kicker"><span class="chip" style="color:var(--gold)">The Dream Web</span><span class="chip plain">${projects.length} ${projects.length === 1 ? "project" : "projects"}</span></div>
+    <h2>${projects.length ? "Freeing each other's dreams" : "The web is waiting for its first dream"}</h2>
+    <p class="story">FreeTheDream is the heart of it all: <i>we're here to help free each other's dreams.</i> Every circle is a community dream that people can join, help and grow.</p>
+    <div class="nav"><button class="btn primary" type="button" id="p-share">Share a dream</button><button class="btn" type="button" id="p-guide">Read the guidelines</button></div>
+    <button class="tour-cta" type="button" id="p-tour"><b>New here? Take the tour</b><span>Seven short steps on how to move around the web, read a project and share a dream.</span></button>
+    ${modeNote()}
+    <section><h3>On the Dream Web</h3>${projects.length ? `<ul class="list">${projects.map(id => `<li><button type="button" data-go="${esc(id)}"><i class="dot" style="background:${(EL[N[id].el] || EL.gold)[1]}"></i><span><b>${esc(N[id].name)}</b><br><small>${stewardsOf(id).length ? "run by " + esc(stewardsOf(id).map(nameOf).join(", ")) : esc(N[id].verb || "Waiting to be filled in")}</small></span></button></li>`).join("")}</ul>` : `<p class="note">Nothing here yet. When a dream is approved it appears on the web, and here.</p>`}</section>
+    ${waiting ? `<p class="note">${waiting} shared ${waiting === 1 ? "dream is" : "dreams are"} waiting for review.</p>` : ""}`;
   wire();
-  panel.querySelector("#p-drop").onclick = () => show("drop");
-  const dm = panel.querySelector("#p-demo"); if (dm) dm.onclick = () => startDemo();
-  panel.querySelector("#p-wander").onclick = () => go(1);
+  panel.querySelector("#p-share").onclick = () => startShare();
+  panel.querySelector("#p-guide").onclick = () => show("guidelines");
+  panel.querySelector("#p-tour").onclick = () => startTour();
 }
 function modeNote() {
-  if (mode === "local") return `<p class="note">This is a standalone copy, so you are its admin and everything stays on this device. To build the map together, use the shared online map.</p>`;
-  if (mode === "readonly") return `<p class="note">You can explore the map. To drop ideas, ask the map's owner for Contributor access.</p>`;
+  if (mode === "local") return `<p class="note">This is a standalone copy, so you are its admin and everything stays on this device.</p>`;
+  if (mode === "readonly") return `<p class="note">You can explore the web. To share a dream, ask the owner for Contributor access.</p>`;
   return isAdmin ? `<p class="note">You are an admin of this map, so the Review panel is yours.</p>` : "";
 }
 
@@ -1214,7 +1288,7 @@ function renderNode(id) {
       <p class="err" id="err-name" hidden></p>
       <div class="nav"><button class="btn primary" type="button" data-save="name">Save</button><button class="btn" type="button" data-cancel="name">Cancel</button></div>`
       : `<div class="info-head"><h2>${esc(n.name)}</h2>${can ? `<button class="mini" type="button" data-editf="name">Rename</button>` : ""}</div>`}
-    <p class="note">${id === "ftd" ? "Held by all of us." : st.length ? "Run by " + esc(st.map(nameOf).join(", ")) + "." : n.idea ? "Dropped by " + esc(nameOf(n.by)) + "." : "No one is running this on the map yet."}${n.edited ? ` Last updated by ${esc(nameOf(n.edited.by))}.` : ""}${can && !st.includes(me) && isAdmin && id !== "ftd" ? " You can edit it as an admin, or mark yourself as running it." : ""}</p>
+    <p class="note">${id === "ftd" ? "Held by all of us." : st.length ? "Run by " + esc(st.map(nameOf).join(", ")) + "." : n.tpl ? "Added to the web by " + esc(nameOf(n.by)) + "." : n.idea ? "Shared by " + esc(nameOf(n.by)) + "." : "No one is running this yet."}${n.edited ? ` Last updated by ${esc(nameOf(n.edited.by))}.` : ""}${can && !st.includes(me) && isAdmin && id !== "ftd" ? " You can edit it as an admin, or mark yourself as running it." : ""}</p>
     ${runBtn ? `<div class="nav">${runBtn}</div>` : ""}
     ${can ? logoSection(id) : ""}
     ${(() => {
@@ -1224,9 +1298,8 @@ function renderNode(id) {
         : `<p class="empty-all">${id === "ftd" ? "" : esc(emptyLine(id, n.name, st.map(nameOf)))}</p>`;
     })()}
     ${calc}
-    <div class="reach"><b>${r.direct}</b><span>direct ${r.direct === 1 ? "link" : "links"}. Within two steps it reaches ${r.two} of the other ${r.total} projects.</span></div>
     <section><div class="info-head"><h3>Influences and is influenced by</h3>${can ? `<button class="mini" type="button" id="p-links">Edit links</button>` : ""}</div>${links ? `<ul class="links">${links}</ul>` : `<p class="empty">Not linked to anything yet.</p>`}</section>
-    ${isAdmin && n.idea ? `<div class="nav"><button class="btn danger" type="button" id="p-off">Take off the map</button></div>` : ""}
+    ${isAdmin && n.idea ? `<div class="nav"><button class="btn danger" type="button" id="p-off">Take off the web</button></div>` : ""}
     <div class="nav">
       <button class="btn" type="button" id="p-back">← ${esc(prev.name)}</button>
       <button class="btn primary" type="button" id="p-next">${esc(next.name)} →</button>
@@ -1264,7 +1337,57 @@ function renderNode(id) {
   }
 }
 
-// ── Idea drop ──
+// ── Guidelines: what belongs on the Dream Web ──
+const YOU_URL = "https://you.kronk.info", KRONK_URL = "https://kronk.info";
+function renderGuidelines() {
+  panel.innerHTML = `
+    <div class="kicker"><span class="chip" style="color:var(--gold)">Guidelines</span></div>
+    <h2>What belongs on the Dream Web</h2>
+    <p class="story">FreeTheDream is the heart of this platform. <i>We're here to help free each other's dreams,</i> so every dream on the web is one the community can be part of.</p>
+    <section class="rule yes"><h3>A dream belongs here if</h3><ul>
+      <li><b>It involves the community</b> in some shape or form: people can join in, help it grow, or benefit from it.</li>
+      <li><b>The community can help</b> with time, skills, space, connections or support.</li>
+      <li><b>It's offered in the spirit of FreeTheDream:</b> lifting each other up.</li>
+    </ul></section>
+    <section class="rule elsewhere"><h3>Somewhere else is a better home for</h3><ul>
+      <li><b>A personal dream, just for you</b>. That's what YOU is for: your story, your values, your path. <a href="${YOU_URL}" target="_blank" rel="noopener">Open YOU</a></li>
+      <li><b>A simple message, update or post</b>. Share it on the Kronk feed. <a href="${KRONK_URL}" target="_blank" rel="noopener">Open Kronk</a></li>
+    </ul></section>
+    <section class="rule maybe"><h3>Not sure?</h3><p>Ideas are always welcome. Read the points above, and if the community could help, share it. An admin reviews every dream and can help shape it.</p></section>
+    <div class="nav"><button class="btn primary" type="button" id="g-share">Share a dream</button><button class="btn" type="button" id="g-map">Back to the web</button></div>`;
+  panel.querySelector("#g-share").onclick = () => startShare();
+  panel.querySelector("#g-map").onclick = () => overview();
+}
+
+// ── Share a dream: one question first, so it goes to the right place ──
+function startShare() { show("share"); }
+function renderShareCheck(answer) {
+  const out = {
+    me: { title: "That sounds like a dream for YOU", text: "Personal dreams have their own home in YOU, where you can map your story, your values and your path.", href: YOU_URL, cta: "Open YOU" },
+    post: { title: "That sounds like a post for Kronk", text: "Simple messages, updates and posts belong on the Kronk feed, where your Mates will see them.", href: KRONK_URL, cta: "Open Kronk" }
+  }[answer];
+  panel.innerHTML = `
+    <div class="kicker"><span class="chip" style="color:#3FA9A5">Share a dream</span></div>
+    <h2>${out ? esc(out.title) : "Who is this dream for?"}</h2>
+    ${out ? `<p class="story">${esc(out.text)}</p>
+      <div class="nav"><a class="btn primary" href="${out.href}" target="_blank" rel="noopener">${out.cta}</a><button class="btn" type="button" id="s-again">Choose again</button></div>
+      <p class="note">If the community could help with it after all, choose “Our community” instead.</p>`
+    : `<p class="story">The Dream Web is for dreams <i>the community can be part of.</i> Pick the one that fits best.</p>
+      <div class="choices">
+        <button class="choice" type="button" data-ans="me"><b>Just me</b><span>A personal dream: my growth, my story, my path</span></button>
+        <button class="choice" type="button" data-ans="post"><b>I want to tell people something</b><span>A message, an update, a post</span></button>
+        <button class="choice go" type="button" data-ans="community"><b>Our community</b><span>Others can join in, help it grow, or benefit from it</span></button>
+      </div>
+      <p class="note">Not sure? <button class="linkbtn" type="button" id="s-guide">Read the guidelines</button></p>`}
+    <div class="nav"><button class="btn" type="button" id="s-map">Back to the web</button></div>`;
+  panel.querySelectorAll("[data-ans]").forEach(b => b.onclick = () => b.dataset.ans === "community" ? openForm() : renderShareCheck(b.dataset.ans));
+  const again = panel.querySelector("#s-again"); if (again) again.onclick = () => renderShareCheck();
+  const g = panel.querySelector("#s-guide"); if (g) g.onclick = () => show("guidelines");
+  panel.querySelector("#s-map").onclick = () => overview();
+  panel.scrollTop = 0;
+}
+
+// ── Shared dreams ──
 function renderDrop() {
   const drops = allDrops(), mineD = drops.filter(d => d.by === me);
   const pool = drops.filter(d => d.by !== me && statusOf(d.key) === "waiting");
@@ -1272,21 +1395,22 @@ function renderDrop() {
     <li class="card">
       <div class="card-top"><b>${esc(d.name)}</b>${statusChip(statusOf(d.key))}</div>
       ${d.what ? `<p>${esc(d.what)}</p>` : ""}
-      <small>${own ? "Your idea" : "Dropped by " + esc(nameOf(d.by))} · ${esc(EL[d.el][0])} · ${esc(SIDE[d.side])}${d.links.length ? " · links to " + esc(d.links.filter(l => N[l]).map(l => N[l].name).join(", ")) : ""}</small>
+      ${d.community ? `<p class="note">Community: ${esc(d.community)}</p>` : ""}
+      <small>${own ? "Your dream" : "Shared by " + esc(nameOf(d.by))} · ${esc(EL[d.el][0])} · ${esc(SIDE[d.side])}${d.links.length ? " · links to " + esc(d.links.filter(l => N[l]).map(l => N[l].name).join(", ")) : ""}</small>
       ${statusOf(d.key) === "declined" && (S.decisions[d.key] || {}).note && (own || isAdmin) ? `<p class="note">Note from the reviewer: ${esc(S.decisions[d.key].note)}</p>` : ""}
       ${own && statusOf(d.key) === "waiting" && canAdd ? `<div class="nav"><button class="btn" type="button" data-edit="${esc(d.id)}">Edit</button><button class="btn danger" type="button" data-withdraw="${esc(d.id)}">Withdraw</button></div>` : ""}
-      ${statusOf(d.key) === "approved" && N[d.key] ? `<div class="nav"><button class="btn" type="button" data-go="${esc(d.key)}">See it on the map</button></div>` : ""}
+      ${statusOf(d.key) === "approved" && N[d.key] ? `<div class="nav"><button class="btn" type="button" data-go="${esc(d.key)}">See it on the web</button></div>` : ""}
     </li>`;
   panel.innerHTML = `
-    <div class="kicker"><span class="chip" style="color:#3FA9A5">Idea drop</span><span class="chip plain">${drops.filter(d => statusOf(d.key) === "waiting").length} waiting for review</span></div>
-    <h2>Idea drop</h2>
-    <p class="story">Drop new ideas here. <i>An admin reviews each one</i> before it joins the map.</p>
-    <div class="nav">${canAdd ? `<button class="btn primary" type="button" id="d-new">+ Drop an idea</button>` : ""}${isAdmin ? `<button class="btn" type="button" id="d-review">Review</button>` : ""}<button class="btn" type="button" id="d-map">Back to the map</button></div>
+    <div class="kicker"><span class="chip" style="color:#3FA9A5">Shared dreams</span><span class="chip plain">${drops.filter(d => statusOf(d.key) === "waiting").length} waiting for review</span></div>
+    <h2>Shared dreams</h2>
+    <p class="story">Dreams people have shared. <i>An admin reviews each one</i> before it joins the web.</p>
+    <div class="nav">${canAdd ? `<button class="btn primary" type="button" id="d-new">+ Share a dream</button>` : ""}${isAdmin ? `<button class="btn" type="button" id="d-review">Review</button>` : ""}<button class="btn" type="button" id="d-map">Back to the web</button></div>
     ${modeNote()}
-    <section><h3>Your ideas</h3>${mineD.length ? `<ul class="cards">${mineD.map(d => card(d, true)).join("")}</ul>` : `<p class="note">${canAdd ? "You haven't dropped any ideas yet." : "Sign in with Contributor access to drop ideas."}</p>`}</section>
-    <section><h3>In the pool</h3>${pool.length ? `<ul class="cards">${pool.map(d => card(d, false)).join("")}</ul>` : `<p class="note">No one else's ideas are waiting right now.</p>`}</section>`;
+    <section><h3>Your dreams</h3>${mineD.length ? `<ul class="cards">${mineD.map(d => card(d, true)).join("")}</ul>` : `<p class="note">${canAdd ? "You haven't shared a dream yet." : "Sign in with Contributor access to share a dream."}</p>`}</section>
+    <section><h3>Waiting from others</h3>${pool.length ? `<ul class="cards">${pool.map(d => card(d, false)).join("")}</ul>` : `<p class="note">No one else's dreams are waiting right now.</p>`}</section>`;
   wire();
-  const nb = panel.querySelector("#d-new"); if (nb) nb.onclick = () => openForm();
+  const nb = panel.querySelector("#d-new"); if (nb) nb.onclick = () => startShare();
   const rb = panel.querySelector("#d-review"); if (rb) rb.onclick = () => show("review");
   panel.querySelector("#d-map").onclick = () => overview();
   panel.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => openForm(mine().drops.find(x => x.id === b.dataset.edit)));
@@ -1295,40 +1419,44 @@ function renderDrop() {
   }));
 }
 
+const linkChoices = picked => ORDER.map(id => `<label><input type="checkbox" name="f-link" value="${esc(id)}" ${picked.includes(id) ? "checked" : ""}>${esc(N[id].name)}</label>`).join("");
 function openForm(item, seed) {
   if (!canAdd) return show("drop");
-  formOpen = true; current = null; panelView = "form"; paint(); hud();
+  formOpen = true; current = null; panelView = "form"; paint(); hud(); markTabs();
   if (seed != null && view === "spiral") { const s = SEEDS[seed]; flyTo({ x: s.x - 250, y: s.y - 240, w: 500, h: 500 * BASE.h / BASE.w }); }
   const v = item || { name: "", what: "", side: "inner", el: "water", links: [] };
   panel.innerHTML = `
-    <div class="kicker"><span class="chip" style="color:#3FA9A5">Idea drop</span></div>
-    <h2>${item ? "Edit your idea" : "Drop an idea"}</h2>
+    <div class="kicker"><span class="chip" style="color:#3FA9A5">Share a dream</span></div>
+    <h2>${item ? "Edit your dream" : "Tell us your dream"}</h2>
     <form class="add" id="f-add" novalidate>
       <div class="field"><label for="f-name">Name</label><input type="text" id="f-name" maxlength="40" required value="${esc(v.name)}" placeholder="e.g. Community garden"></div>
-      <div class="field"><label for="f-what">What is it?</label><textarea id="f-what" maxlength="400" placeholder="A sentence or two about the idea and who it's for">${esc(v.what)}</textarea></div>
+      <div class="field"><label for="f-what">What is it?</label><textarea id="f-what" maxlength="400" placeholder="A sentence or two about the dream">${esc(v.what)}</textarea></div>
+      <div class="field"><label for="f-comm">How does it involve the community?</label><textarea id="f-comm" maxlength="400" required placeholder="Who can join in, help, or benefit, and how">${esc(v.community || "")}</textarea></div>
       <fieldset class="field"><legend>Which side of the O?</legend><div class="opts">
         ${[["inner", "Inner life (ocean)"], ["outer", "Shared life (cosmos)"], ["bridge", "A bridge between"]].map(([k, l]) => `<label><input type="radio" name="f-side" value="${k}" ${v.side === k ? "checked" : ""}>${l}</label>`).join("")}
       </div></fieldset>
       <fieldset class="field"><legend>Its element</legend><div class="opts">
         ${ELS.map(k => `<label><input type="radio" name="f-el" value="${k}" ${v.el === k ? "checked" : ""}><i class="dot" style="background:${EL[k][1]}"></i>${EL[k][0]}</label>`).join("")}
       </div></fieldset>
-      <fieldset class="field"><legend>What does it connect to?</legend><div class="opts">
-        ${ORDER.map(id => `<label><input type="checkbox" name="f-link" value="${esc(id)}" ${(v.links || []).includes(id) ? "checked" : ""}>${esc(N[id].name)}</label>`).join("")}
+      <fieldset class="field"><legend>What does it connect to?</legend><div class="opts" id="f-links">
+        ${linkChoices(v.links || [])}
       </div></fieldset>
       <p class="err" id="f-err" hidden></p>
-      <div class="nav"><button class="btn primary" type="submit" id="f-save">${item ? "Save changes" : "Drop it in the pool"}</button><button class="btn" type="button" id="f-cancel">Cancel</button></div>
-      <p class="note">An admin reviews every idea. If it's approved it becomes a project on the map, and you run it: you can fill in its sections and add a logo.</p>
+      <div class="nav"><button class="btn primary" type="submit" id="f-save">${item ? "Save changes" : "Share it"}</button><button class="btn" type="button" id="f-cancel">Cancel</button></div>
+      <p class="note">An admin reviews every dream. Once it's approved it joins the web, and you run it: you can fill in its story, add a logo and write reflections.</p>
     </form>`;
-  panel.querySelector("#f-cancel").onclick = () => show("drop");
+  panel.querySelector("#f-cancel").onclick = () => item ? show("drop") : renderShareCheck();
   panel.querySelector("#f-name").focus({ preventScroll: true });
   panel.querySelector("#f-add").addEventListener("submit", async ev => {
     ev.preventDefault();
     const f = ev.target, err = panel.querySelector("#f-err");
     const name = f.querySelector("#f-name").value.trim();
-    if (!name) { err.textContent = "Give the idea a name so people can find it."; err.hidden = false; return; }
+    if (!name) { err.textContent = "Give the dream a name so people can find it."; err.hidden = false; return; }
+    const community = f.querySelector("#f-comm").value.trim();
+    if (!community) { err.textContent = "Say how the community is involved. That's what makes it a dream for the web."; err.hidden = false; return; }
     const data = {
       id: item ? item.id : Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      name, what: f.querySelector("#f-what").value.trim(),
+      name, what: f.querySelector("#f-what").value.trim(), community,
       side: (f.querySelector('input[name="f-side"]:checked') || {}).value || "inner",
       el: (f.querySelector('input[name="f-el"]:checked') || {}).value || "water",
       links: [...f.querySelectorAll('input[name="f-link"]:checked')].map(x => x.value).slice(0, 20),
@@ -1338,7 +1466,7 @@ function openForm(item, seed) {
       const m = mine(); m.drops = m.drops.filter(x => x.id !== data.id).concat([data]).slice(-40);
       await writeMine(m);
       show("drop");
-      toast(item ? "Idea updated." : "Dropped in the pool. An admin will review it.");
+      toast(item ? "Dream updated." : "Shared. An admin will review it soon.");
     });
   });
 }
@@ -1374,17 +1502,23 @@ function renderReview() {
   panel.innerHTML = `
     <div class="kicker"><span class="chip" style="color:var(--gold)">Review</span><span class="chip plain">Admins only</span></div>
     <h2>Review</h2>
-    <p class="story">Decide what joins the map and <i>who runs what.</i></p>
-    <div class="nav"><button class="btn" type="button" id="r-drop">Idea drop</button><button class="btn" type="button" id="r-map">Back to the map</button></div>
-    <section><h3>Ideas waiting (${waiting.length})</h3>${waiting.length ? `<ul class="cards">${waiting.map(d => `
+    <p class="story">Decide what joins the web and <i>who runs what.</i></p>
+    <div class="nav"><button class="btn" type="button" id="r-drop">Shared dreams</button><button class="btn" type="button" id="r-map">Back to the web</button></div>
+    <section><h3>Dreams waiting (${waiting.length})</h3>${waiting.length ? `<ul class="cards">${waiting.map(d => `
       <li class="card">
         <div class="card-top"><b>${esc(d.name)}</b><span class="st wait">${esc(EL[d.el][0])}</span></div>
         ${d.what ? `<p>${esc(d.what)}</p>` : ""}
-        <small>Dropped by ${esc(nameOf(d.by))} · ${esc(SIDE[d.side])}${d.links.length ? " · links to " + esc(d.links.filter(l => N[l]).map(l => N[l].name).join(", ")) : ""}</small>
-        <p class="note">Approving adds it to the map as a project like the others: its own circle, logo and sections, run by ${esc(nameOf(d.by))}.</p>
+        <p class="note"><b>Community:</b> ${esc(d.community || "Not said")}</p>
+        <small>Shared by ${esc(nameOf(d.by))} · ${esc(SIDE[d.side])}${d.links.length ? " · links to " + esc(d.links.filter(l => N[l]).map(l => N[l].name).join(", ")) : ""}</small>
+        <p class="note">Approving adds it to the web, run by ${esc(nameOf(d.by))}.</p>
         <div class="field"><label for="note-${esc(d.key)}">Note if declining (optional)</label><input type="text" id="note-${esc(d.key)}" maxlength="200"></div>
-        <div class="nav"><button class="btn primary" type="button" data-approve="${esc(d.key)}">Add as a project</button><button class="btn" type="button" data-decline="${esc(d.key)}">Not this time</button></div>
-      </li>`).join("")}</ul>` : `<p class="note">Nothing waiting. New drops will appear here.</p>`}</section>
+        <div class="nav"><button class="btn primary" type="button" data-approve="${esc(d.key)}">Add to the web</button><button class="btn" type="button" data-decline="${esc(d.key)}">Not this time</button></div>
+      </li>`).join("")}</ul>` : `<p class="note">Nothing waiting. New dreams will appear here.</p>`}</section>
+    ${(() => {
+      const onWeb = new Set(ORDER.map(id => N[id].tpl).filter(Boolean)), left = Object.keys(TEMPLATES).filter(k => !onWeb.has(k));
+      return `<section><h3>Our projects (${left.length} not on the web)</h3><p class="note">The founding projects, with their logos and known links. Add them one at a time to watch the web grow.</p>
+        ${left.length ? `<ul class="cards">${left.map(k => `<li class="card starter"><div class="card-top"><b>${esc(TEMPLATES[k].name)}</b><span class="st wait">${esc(SIDE[TEMPLATES[k].side])}</span></div><div class="nav"><button class="btn primary" type="button" data-starter="${k}">Add to the web</button></div></li>`).join("")}</ul>` : `<p class="note">All of them are on the web.</p>`}</section>`;
+    })()}
     <section><h3>Requests to run a project (${claims.length})</h3>${claims.length ? `<ul class="cards">${claims.map(c => `
       <li class="card">
         <div class="card-top"><b>${esc(nameOf(c.by))}</b><span class="st wait">${esc(N[c.pid].name)}</span></div>
@@ -1400,7 +1534,8 @@ function renderReview() {
   panel.querySelector("#r-drop").onclick = () => show("drop");
   panel.querySelector("#r-map").onclick = () => overview();
   const act = (btn, fn) => btn.onclick = () => guard(btn, fn, err);
-  panel.querySelectorAll("[data-approve]").forEach(b => act(b, async () => { await approveIdea(waiting.find(d => d.key === b.dataset.approve)); toast("Added to the map as a project."); }));
+  panel.querySelectorAll("[data-approve]").forEach(b => act(b, async () => { await approveIdea(waiting.find(d => d.key === b.dataset.approve)); toast("Added to the web."); }));
+  panel.querySelectorAll("[data-starter]").forEach(b => act(b, async () => { const k = b.dataset.starter; await addStarter(k); toast(`${TEMPLATES[k].name} is on the web.`); }));
   panel.querySelectorAll("[data-decline]").forEach(b => act(b, () => decide(b.dataset.decline, "declined", (panel.querySelector(`[id="note-${b.dataset.decline}"]`) || {}).value)));
   panel.querySelectorAll("[data-grant]").forEach(b => act(b, async () => { const c = claims.find(x => x.key === b.dataset.grant); await setStewards(c.pid, [...stewardsOf(c.pid), c.by]); await decide(c.key, "approved"); }));
   panel.querySelectorAll("[data-deny]").forEach(b => act(b, () => decide(b.dataset.deny, "declined")));
@@ -1502,6 +1637,57 @@ function renderDemo() {
   panel.querySelectorAll("[data-dtab]").forEach(b => b.onclick = () => { stopDemo(); demoTab = b.dataset.dtab; renderDemo(); });
 }
 
+// ── How it works: a short tour that points at each part of the page ──
+const TOUR = [
+  { sel: "#map", title: "This is the Dream Web", text: "FreeTheDream sits at the heart. Every circle around it is a community dream that has joined the web." },
+  { sel: "#map", title: "Tap a circle", text: "Tap any project to zoom in and read its story. The details open in the panel beside the map, or below it on a phone." },
+  { sel: ".hud", title: "Wander from dream to dream", text: "Back and Next take you around the web, one project at a time." },
+  { sel: ".zoomctl", title: "Look around", text: "Scroll or pinch to zoom and drag to move. The ⤢ button shows the whole web again." },
+  { sel: "#b-guide", title: "Read the guidelines", text: "The web is for dreams the community can be part of. Personal dreams belong in YOU, and simple posts belong on the Kronk feed." },
+  { sel: "#b-drop", title: "Share a dream", text: "Share a dream for the community. An admin reviews it, and once it's approved it joins the web." },
+  { sel: "#panel", title: "Run your dream", text: "When your dream is on the web, open it to fill in its story, add a logo and write reflections. Everyone sees them straight away." }
+];
+let tourStep = -1;
+const TOUR_SEEN = "freethedream-tour-seen";
+function startTour() { tourStep = 0; document.getElementById("tour").hidden = false; showTourStep(); markTabs(); }
+function endTour() {
+  tourStep = -1; document.getElementById("tour").hidden = true; markTabs();
+  if (location.hash === "#tour") setHash("");
+  try { localStorage.setItem(TOUR_SEEN, "1"); } catch {}
+  document.getElementById("b-tour").focus({ preventScroll: true });
+}
+function showTourStep() {
+  const s = TOUR[tourStep], target = document.querySelector(s.sel);
+  if (!target) return endTour();
+  target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  document.getElementById("tour-step").textContent = `Step ${tourStep + 1} of ${TOUR.length}`;
+  document.getElementById("tour-title").textContent = s.title;
+  document.getElementById("tour-text").textContent = s.text;
+  document.getElementById("tour-back").disabled = tourStep === 0;
+  document.getElementById("tour-next").textContent = tourStep === TOUR.length - 1 ? "Done" : "Next →";
+  setTimeout(placeTour, reduce ? 0 : 380);
+  document.getElementById("tour-next").focus({ preventScroll: true });
+}
+function placeTour() {
+  if (tourStep < 0) return;
+  const target = document.querySelector(TOUR[tourStep].sel); if (!target) return;
+  const r = target.getBoundingClientRect(), pad = 8, hole = document.getElementById("tour-hole"), card = document.getElementById("tour-card");
+  const vh = window.innerHeight, vw = window.innerWidth;
+  const top = Math.max(4, r.top - pad), bottom = Math.min(vh - 4, r.bottom + pad);
+  Object.assign(hole.style, { left: Math.max(4, r.left - pad) + "px", top: top + "px", width: Math.min(vw - 8, r.width + pad * 2) + "px", height: Math.max(0, bottom - top) + "px" });
+  const ch = card.offsetHeight, cw = card.offsetWidth;
+  let y = bottom + 12; if (y + ch > vh - 8) y = top - ch - 12; if (y < 8) y = Math.max(8, vh - ch - 12);
+  card.style.top = y + "px"; card.style.left = Math.max(12, Math.min(vw - cw - 12, r.left + r.width / 2 - cw / 2)) + "px";
+}
+document.getElementById("tour-next").onclick = () => { if (tourStep >= TOUR.length - 1) return endTour(); tourStep++; showTourStep(); };
+document.getElementById("tour-back").onclick = () => { if (tourStep > 0) { tourStep--; showTourStep(); } };
+document.getElementById("tour-skip").onclick = () => endTour();
+window.addEventListener("resize", () => placeTour());
+window.addEventListener("scroll", () => placeTour(), { passive: true });
+document.addEventListener("keydown", ev => { if (tourStep >= 0 && ev.key === "Escape") { ev.stopImmediatePropagation(); endTour(); } }, true);
+// first visit: offer the tour once
+setTimeout(() => { let seen = false; try { seen = !!localStorage.getItem(TOUR_SEEN); } catch {} if (!seen && tourStep < 0 && !location.hash) startTour(); }, 900);
+
 // ── Writes ──
 // A backend supplies two writes; reads arrive by filling S and calling scheduleRefresh().
 //   putMine(body)         save the viewer's own members/<id> document
@@ -1529,6 +1715,10 @@ async function approveIdea(d) {
   await writeMap("approved", { items: S.approved.filter(x => cleanIdea(x, x.by)?.key !== key).concat([{ ...rest, by: d.by, approvedAt: Date.now() }]) });
   await setStewards(key, [...stewardsOf(key), d.by]);
   await decide(key, "approved");
+}
+async function addStarter(k) {
+  const T = TEMPLATES[k]; if (!T) return;
+  await writeMap("approved", { items: S.approved.concat([{ id: k, tpl: k, name: T.name, what: "", side: T.side, el: T.el === "kronk" || T.el === "gold" ? "air" : T.el, links: [], by: me, at: Date.now(), approvedAt: Date.now() }]) });
 }
 async function takeOff(key) {
   await writeMap("approved", { items: S.approved.filter(x => cleanIdea(x, x.by)?.key !== key) });
@@ -1570,8 +1760,12 @@ function scheduleRefresh() { if (refreshQueued) return; refreshQueued = true; re
 function refresh() {
   rebuild(); buildScene(); layout(false);
   if (current && !N[current]) { current = null; panelView = "overview"; }
-  paint(); hud(); renderPanel(); renderOpenQs(); bar();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const id of ORDER) { if (nodeEls[id]) { measure(id); placeLabel(id); } } });
+  paint(); hud(); renderPanel(); renderOpenQs(); bar(); markTabs();
+  // a form opened before the web finished loading: refresh its project list, keeping what's ticked
+  const linkBox = formOpen && panel.querySelector("#f-links");
+  if (linkBox) linkBox.innerHTML = linkChoices([...linkBox.querySelectorAll("input:checked")].map(i => i.value));
+  emptyNote.style.display = ORDER.length < 2 ? "" : "none";
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const id of ORDER) if (nodeEls[id]) measure(id); placeAllLabels(); });
 }
 function renderOpenQs() {
   const oq = document.getElementById("openq"); oq.textContent = "";
@@ -1586,17 +1780,48 @@ function renderOpenQs() {
 function bar() {
   const waiting = allDrops().filter(d => statusOf(d.key) === "waiting").length;
   const claims = allClaims().filter(c => statusOf(c.key) === "waiting" && !stewardsOf(c.pid).includes(c.by)).length;
-  document.getElementById("b-drop").textContent = "Idea drop" + (waiting ? ` · ${waiting}` : "");
+  document.getElementById("b-drop").textContent = "Share a dream";
   const rv = document.getElementById("b-review");
   rv.hidden = !isAdmin; rv.textContent = "Review" + (waiting + claims ? ` · ${waiting + claims}` : "");
 }
-document.getElementById("b-drop").onclick = () => show("drop");
-document.getElementById("b-review").onclick = () => show("review");
+// Each button shows its page in the panel and brings the panel into view (on phones it sits below the map),
+// landing on the page's heading. Pages also have their own link: #share, #guidelines, #review, #tour.
+const PAGES = { share: "b-drop", guidelines: "b-guide", review: "b-review", tour: "b-tour" };
+function markTabs() {
+  const on = tourStep >= 0 ? "tour" : ["share", "form", "drop"].includes(panelView) ? "share" : panelView;
+  for (const [page, id] of Object.entries(PAGES)) {
+    const b = document.getElementById(id);
+    if (page === on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  }
+}
+function setHash(page) { try { history.replaceState(null, "", page ? "#" + page : location.pathname + location.search); } catch {} }
+function revealPanel() {
+  const r = panel.getBoundingClientRect();
+  // jump straight there: a smooth scroll can stall on slow phones and leave the page looking unchanged
+  if (r.top < 0 || r.top > window.innerHeight * 0.35) window.scrollTo(0, Math.max(0, r.top + window.scrollY - 12));
+  const h = panel.querySelector("h2");
+  if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+}
+function goPage(page) {
+  if (page === "tour") { setHash("tour"); return startTour(); }
+  if (page === "review" && !isAdmin) page = "guidelines";
+  if (page === "share") startShare(); else show(page);
+  setHash(page); markTabs(); revealPanel();
+}
+document.getElementById("b-drop").onclick = () => goPage("share");
+document.getElementById("b-guide").onclick = () => goPage("guidelines");
+document.getElementById("b-tour").onclick = () => goPage("tour");
+document.getElementById("b-review").onclick = () => goPage("review");
+// Open the page named in the link, once we know who is viewing (Review is for admins only).
+function applyHash() {
+  const page = (location.hash || "").slice(1);
+  if (PAGES[page]) goPage(page);
+}
 
 function footer() {
   const f = document.getElementById("foot");
   f.innerHTML = mode === "local"
-    ? `<span>This is a standalone copy. Everything you add stays on this device.</span><span>The shared map everyone builds together: <code>${SHARED_URL}</code></span>`
+    ? `<span>The Dream Web, basics test version. This is a standalone copy: everything you add stays on this device.</span>`
     : `<span>A collective mind map for the FreeTheDream community.</span>`;
 }
 
@@ -1611,7 +1836,7 @@ function connectLocal() {
   mode = "local"; me = "me"; isAdmin = true; canAdd = true;
   const saved = lsLoad(); if (saved && typeof saved === "object") S = { ...S, ...saved };
   backend = { putMine: async () => {}, putMap: async () => {}, persist: lsSave };
-  footer(); refresh();
+  footer(); refresh(); applyHash();
 }
 // Published as a Claude artifact: the artifact's shared db, with the viewer's sharing level deciding admin.
 async function connectClaude() {
@@ -1622,7 +1847,7 @@ async function connectClaude() {
     me = (userCap && await userCap.id()) || null;
     if (me) { canAdd = true; mode = "shared"; isAdmin = !!(userCap && await userCap.canEdit()); }
     backend = { putMine: body => db.doc("members/" + me).set(body), putMap: (id, body) => db.doc("map/" + id).set(body) };
-    footer(); refresh();
+    footer(); refresh(); applyHash();
     db.collection("map").onSnapshot(snap => { snap.docs.forEach(d => applyMapDoc(d.id, d.exists ? d.data() : null)); scheduleRefresh(); }, () => {});
     db.collection("members").onSnapshot(async snap => {
       const next = {};
@@ -1654,21 +1879,25 @@ async function connectKronk(cfg) {
   } catch { /* signed out: read-only */ }
   backend = { putMine: body => call("/members/me", { method: "PUT", body: JSON.stringify(body) }),
               putMap: (id, body) => call("/map/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(body) }) };
+  let lastState = "";
   const pull = async () => {
     try {
       const st = await call("/state");
+      const raw = JSON.stringify(st);
+      if (raw === lastState) return;                 // nothing changed: leave the map as it is
+      lastState = raw;
       S.members = st.members || {};
       Object.entries(st.map || {}).forEach(([k, v]) => applyMapDoc(k, v));
       if (st.names) Object.assign(names, st.names);
       scheduleRefresh();
     } catch { /* keep what we have and try again on the next tick */ }
   };
-  await pull(); footer();
+  await pull(); footer(); applyHash();
   setInterval(pull, Math.max(5000, Number(cfg.pollMs) || 15000));
 }
 
 rebuild(); buildScene(); layout(false); renderOverview(); hud(); paint(); renderOpenQs(); footer();
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const id of ORDER) { measure(id); placeLabel(id); } });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for (const id of ORDER) measure(id); placeAllLabels(); });
 connect();
 </script>
 </body>
