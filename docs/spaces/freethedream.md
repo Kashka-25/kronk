@@ -17,6 +17,8 @@ Source: [`Kashka-25/free-the-dream-map`](https://github.com/Kashka-25/free-the-d
 
 - **How to use this page.** Three numbered steps above the map: tap a
   circle, read "How to get involved", or suggest a project.
+- **All projects.** A dropdown in the top bar lists every project as dot
+  points; choosing one opens it. Works with the keyboard and screen readers.
 - **Projects join by approval.** Someone suggests a project, an admin
   reviews it against the guidelines, and once approved it appears on the
   map, run by the person who suggested it.

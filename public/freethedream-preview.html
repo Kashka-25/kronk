@@ -211,6 +211,20 @@ a.btn { text-decoration: none; display: inline-block; }
 .follows { margin: 0; font-size: 13px; color: var(--ink-2); }
 .follows span { color: var(--el-fire); }
 .btn.following { border-color: var(--el-fire); color: var(--el-fire); }
+.projmenu { position: relative; }
+.pm-toggle { border-style: solid; border-color: var(--line); background: var(--surface); }
+.pm-toggle[aria-expanded="true"] { border-color: var(--gold); }
+.pm-toggle[aria-expanded="true"] .pm-chev { display: inline-block; transform: rotate(180deg); }
+.pm-count { color: var(--ink-3); font-weight: 500; }
+.pm-pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 25; width: min(380px, calc(100vw - 32px)); max-height: min(60vh, 520px); overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); box-shadow: 0 16px 40px rgba(0, 0, 0, .35); padding: 6px; }
+.pm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.pm-list button { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 12px 1fr; gap: 10px; align-items: baseline; padding: 9px 10px; border-radius: var(--r-m); }
+.pm-list button:hover, .pm-list button:focus-visible { background: var(--surface-2); }
+.pm-list button:focus-visible { outline: 3px solid var(--kronk); outline-offset: -3px; }
+.pm-list .dot { width: 10px; height: 10px; }
+.pm-list b { display: block; font-weight: 600; color: var(--ink); }
+.pm-list small { display: block; color: var(--ink-2); font-size: 13px; }
+.pm-empty { padding: 10px; color: var(--ink-3); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
 .legend span { display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
@@ -371,6 +385,12 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
   </ol>
 
   <div class="bar">
+    <div class="projmenu" id="projmenu">
+      <button class="addbtn pm-toggle" id="pm-toggle" type="button" aria-expanded="false" aria-controls="pm-list">All projects <span class="pm-count" id="pm-count"></span> <span class="pm-chev" aria-hidden="true">▾</span></button>
+      <div class="pm-pop" id="pm-pop" hidden>
+        <ul class="pm-list" id="pm-list" aria-label="All projects on the map"></ul>
+      </div>
+    </div>
     <button class="addbtn share" id="b-drop" type="button">Suggest a project</button>
     <button class="addbtn" id="b-sugg" type="button">Suggestions</button>
     <button class="addbtn" id="b-tour" type="button">How it works</button>
@@ -1706,6 +1726,7 @@ function renderDemo() {
 const TOUR = [
   { sel: ".howto", title: "Start here", text: "These three steps are all you need: tap a circle, read how to get involved, or suggest a project." },
   { sel: "#map", title: "The map", text: "Each circle is a project someone in our community is running. FreeTheDream, the idea behind it all, sits in the middle." },
+  { sel: "#pm-toggle", title: "All projects", text: "Prefer a list? Open All projects to see every project as a list and jump straight to one." },
   { sel: "#map", title: "Tap a circle", text: "Tap any project to zoom in and read about it. The details open beside the map, or below it on a phone." },
   { sel: ".hud", title: "Browse", text: "Previous and Next take you from project to project. The ⤢ button shows the whole map again." },
   { sel: "#b-drop", title: "Suggest a project", text: "Have an idea the community could help with? Suggest it. An admin reviews it, and once approved it appears on the map." },
@@ -1826,7 +1847,7 @@ function scheduleRefresh() { if (refreshQueued) return; refreshQueued = true; re
 function refresh() {
   rebuild(); buildScene(); layout(false);
   if (current && !N[current]) { current = null; panelView = "overview"; }
-  paint(); hud(); renderPanel(); renderOpenQs(); bar(); markTabs();
+  paint(); hud(); renderPanel(); renderOpenQs(); bar(); markTabs(); renderProjectMenu();
   // a form opened before the web finished loading: refresh its project list, keeping what's ticked
   const linkBox = formOpen && panel.querySelector("#f-links");
   if (linkBox) linkBox.innerHTML = linkChoices([...linkBox.querySelectorAll("input:checked")].map(i => i.value));
@@ -1876,6 +1897,42 @@ function goPage(page) {
   if (page === "share") startShare(); else if (page === "suggestions") show("drop"); else show(page);
   setHash(page); markTabs(); revealPanel();
 }
+// ── All projects: a dot-point list of every project on the map, from the top bar ──
+const pmToggle = document.getElementById("pm-toggle"), pmPop = document.getElementById("pm-pop"), pmList = document.getElementById("pm-list");
+function renderProjectMenu() {
+  const projects = ORDER.filter(id => id !== "ftd");
+  document.getElementById("pm-count").textContent = `(${projects.length})`;
+  pmToggle.setAttribute("aria-label", `All projects, ${projects.length} on the map`);
+  const oneLine = s => { s = String(s || ""); return s.length > 80 ? s.slice(0, 78).replace(/\s+\S*$/, "") + "…" : s; };
+  pmList.innerHTML = projects.length
+    ? ["ftd", ...projects].map(id => `<li><button type="button" data-pm="${esc(id)}"><i class="dot" style="background:${(EL[N[id].el] || EL.gold)[1]}" aria-hidden="true"></i><span><b>${esc(N[id].name)}</b>${id === "ftd" ? `<small>The idea at the centre</small>` : (N[id].verb || N[id].what) ? `<small>${esc(oneLine(N[id].verb || N[id].what))}</small>` : ""}</span></button></li>`).join("")
+    : `<li class="pm-empty">No projects on the map yet.</li>`;
+  pmList.querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { closeProjectMenu(false); open(b.dataset.pm); revealPanel(); });
+}
+function openProjectMenu() {
+  renderProjectMenu(); pmPop.hidden = false; pmToggle.setAttribute("aria-expanded", "true");
+  const first = pmList.querySelector("button"); if (first) first.focus();
+}
+function closeProjectMenu(returnFocus) {
+  if (pmPop.hidden) return;
+  pmPop.hidden = true; pmToggle.setAttribute("aria-expanded", "false");
+  if (returnFocus) pmToggle.focus();
+}
+pmToggle.onclick = () => pmPop.hidden ? openProjectMenu() : closeProjectMenu(true);
+// keyboard: arrows move through the list, Home/End jump, Esc closes and returns to the button
+document.getElementById("projmenu").addEventListener("keydown", ev => {
+  const items = [...pmList.querySelectorAll("button")], i = items.indexOf(document.activeElement);
+  if (ev.key === "Escape" && !pmPop.hidden) { ev.preventDefault(); ev.stopPropagation(); closeProjectMenu(true); }
+  else if (ev.key === "ArrowDown" && !pmPop.hidden) { ev.preventDefault(); ev.stopPropagation(); (items[i + 1] || items[0]).focus(); }
+  else if (ev.key === "ArrowUp" && !pmPop.hidden) { ev.preventDefault(); ev.stopPropagation(); (items[i - 1] || items[items.length - 1]).focus(); }
+  else if (ev.key === "Home" && !pmPop.hidden) { ev.preventDefault(); items[0] && items[0].focus(); }
+  else if (ev.key === "End" && !pmPop.hidden) { ev.preventDefault(); items[items.length - 1] && items[items.length - 1].focus(); }
+  else if (ev.key === "ArrowDown" && pmPop.hidden && document.activeElement === pmToggle) { ev.preventDefault(); openProjectMenu(); }
+});
+// close when clicking or tabbing anywhere else
+document.addEventListener("click", ev => { if (!document.getElementById("projmenu").contains(ev.target)) closeProjectMenu(false); });
+document.getElementById("projmenu").addEventListener("focusout", ev => { if (!document.getElementById("projmenu").contains(ev.relatedTarget)) closeProjectMenu(false); });
+
 document.getElementById("b-drop").onclick = () => goPage("share");
 document.getElementById("b-guide").onclick = () => goPage("guidelines");
 document.getElementById("b-sugg").onclick = () => goPage("suggestions");
