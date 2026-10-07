@@ -258,6 +258,12 @@ body.dreaming .mapbox { filter: blur(4px) saturate(1.2) brightness(.85); }
 .world-panel > .info-head { flex-direction: column; align-items: center; gap: 6px; }
 .world-panel h2 { font-size: clamp(40px, 7vw, 64px); text-align: center; }
 .world-panel h2:focus { outline: none; }
+/* the project name is the rename button for whoever runs it; a faint pencil sits just outside it, so the name stays centred */
+.title-btn { all: unset; position: relative; cursor: pointer; border-radius: 10px; }
+.title-pencil { position: absolute; left: 100%; top: 50%; transform: translate(10px, -50%); display: grid; color: var(--ink-3); opacity: .6; transition: opacity .15s, color .15s; }
+.title-pencil svg { width: max(16px, .36em); height: max(16px, .36em); }
+.title-btn:hover .title-pencil, .title-btn:focus-visible .title-pencil { opacity: 1; color: var(--gold); }
+.title-btn:focus-visible { outline: 3px solid var(--kronk); outline-offset: 6px; }
 .world-panel p, .world-panel li { font-size: 16.5px; }
 .world-panel .info { background: color-mix(in srgb, var(--surface) 70%, transparent); border-radius: var(--r-l); padding: 16px 18px; }
 .world-panel .info.is-empty { background: transparent; }
@@ -1663,6 +1669,8 @@ function emptyLine(id, name, runners) {
   }
   return EMPTY_NOONE[h % EMPTY_NOONE.length](name);
 }
+let refocusTitle = false;   // after a rename, keyboard focus returns to the name once the page shows it
+function focusTitle() { const b = panel.querySelector(".title-btn"); if (b) b.focus(); }
 function renderNode(id) {
   const n = N[id], links = linkList(id), r = reach(id), st = stewardsOf(id), can = canEditProject(id);
   const claimState = mine().claims.includes(id) ? statusOf("claim:" + me + ":" + id) : null;
@@ -1689,7 +1697,7 @@ function renderNode(id) {
     ${renaming ? `<div class="field"><label for="fld-name">Project name</label><input type="text" id="fld-name" maxlength="40" value="${esc(n.name)}"></div>
       <p class="err" id="err-name" hidden></p>
       <div class="nav"><button class="btn primary" type="button" data-save="name">Save</button><button class="btn" type="button" data-cancel="name">Cancel</button></div>`
-      : `<div class="info-head"><h2>${esc(n.name)}</h2>${can ? `<button class="mini" type="button" data-editf="name">Rename</button>` : ""}</div>`}
+      : `<div class="info-head"><h2>${can ? `<button class="title-btn" type="button" data-editf="name" aria-label="${esc(n.name)}, rename this project">${esc(n.name)}<span class="title-pencil" aria-hidden="true">${PENCIL}</span></button>` : esc(n.name)}</h2></div>`}
     <p class="note">${id === "ftd" ? "Held by all of us." : st.length ? "Run by " + esc(st.map(nameOf).join(", ")) + "." : n.tpl ? "Added to the map by " + esc(nameOf(n.by)) + "." : n.idea ? "Suggested by " + esc(nameOf(n.by)) + "." : "No one is running this yet."}${n.edited ? ` Last updated by ${esc(nameOf(n.edited.by))}.` : ""}${can && !st.includes(me) && isAdmin && id !== "ftd" ? " You can edit it as an admin, or mark yourself as running it." : ""}</p>
     ${runBtn ? `<div class="nav">${runBtn}</div>` : ""}
     ${(() => {
@@ -1714,12 +1722,17 @@ function renderNode(id) {
     editingField = b.dataset.editf; formOpen = true; renderNode(id);
     const f = panel.querySelector("#fld-" + editingField); if (f) { f.focus(); if (f.setSelectionRange) f.setSelectionRange(f.value.length, f.value.length); }
   });
-  panel.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { editingField = null; formOpen = false; renderNode(id); });
+  panel.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { const was = editingField; editingField = null; formOpen = false; renderNode(id); if (was === "name") focusTitle(); });
+  const nameField = panel.querySelector("#fld-name");
+  if (nameField) nameField.addEventListener("keydown", ev => {
+    if (ev.key === "Enter") { ev.preventDefault(); panel.querySelector('[data-save="name"]').click(); }
+    if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); panel.querySelector('[data-cancel="name"]').click(); }
+  });
   panel.querySelectorAll("[data-save]").forEach(b => b.onclick = () => {
     const key = b.dataset.save, raw = panel.querySelector("#fld-" + key).value;
     const v = key === "qs" ? raw.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8) : raw.trim();
     if (key === "name" && !v) { const e = panel.querySelector("#err-name"); e.textContent = "A project needs a name."; e.hidden = false; return; }
-    submitWith(b, panel.querySelector("#err-" + key), async () => { await saveFields(id, { [key]: v }); editingField = null; formOpen = false; scheduleRefresh(); toast("Saved. Everyone can see it now."); });
+    submitWith(b, panel.querySelector("#err-" + key), async () => { await saveFields(id, { [key]: v }); editingField = null; formOpen = false; scheduleRefresh(); toast("Saved. Everyone can see it now."); if (key === "name") refocusTitle = true; });
   });
   const cl = panel.querySelector("#p-claim");
   if (cl) cl.onclick = () => guard(cl, async () => { const m = mine(); if (!m.claims.includes(id)) m.claims.push(id); await writeMine(m); toast("Request sent. An admin will review it."); });
@@ -1731,6 +1744,7 @@ function renderNode(id) {
   const sb = panel.querySelector("#p-stepback");
   if (sb) sb.onclick = () => twoTap(sb, "Tap again to step back", async () => { await setStewards(id, st.filter(x => x !== me)); toast(`You've stepped back from ${n.name}.`); });
   if (panel === worldBody) renderHero(id, can);
+  if (refocusTitle && panel.querySelector(".title-btn")) { refocusTitle = false; focusTitle(); }
   const off = panel.querySelector("#p-off");
   if (off) off.onclick = () => twoTap(off, "Tap again to take it off", async () => { await takeOff(id); overview(); });
   if (id === "fund") {
