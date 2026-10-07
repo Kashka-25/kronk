@@ -104,11 +104,6 @@ h1 em { font-style: italic; font-weight: 500; color: var(--gold); }
 .info textarea#fld-reflect { min-height: 180px; }
 .mini { font: 600 12.5px var(--font-body); color: var(--gold); background: transparent; border: 1px solid currentColor; border-radius: var(--r-round); padding: 3px 10px; cursor: pointer; white-space: nowrap; }
 .mini:hover { background: var(--surface-2); }
-.logo-row { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; align-items: center; background: var(--surface-2); border-radius: var(--r-m); padding: 12px; }
-.logo-prev { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; background: #FFFFFF; display: grid; place-items: center; border: 2px solid var(--gold); }
-.logo-prev img { width: 100%; height: 100%; object-fit: cover; }
-.logo-prev svg { width: 70%; height: 70%; }
-.logo-prev .glyph-prev { display: grid; place-items: center; width: 100%; height: 100%; background: var(--node); }
 .logo-actions { display: grid; gap: 6px; min-width: 0; }
 .logo-actions h3 { margin: 0; }
 label.mini { display: inline-block; }
@@ -244,6 +239,17 @@ body.dreaming .mapbox { filter: blur(4px) saturate(1.2) brightness(.85); }
 .world-logo { width: 136px; height: 136px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #fff;
   border: 3px solid var(--wcol, var(--gold)); box-shadow: 0 0 0 12px color-mix(in srgb, var(--wcol, var(--gold)) 16%, transparent), 0 22px 60px rgba(0, 0, 0, .45); }
 .world-logo img { width: 100%; height: 100%; object-fit: cover; }
+.world-hero { gap: 12px; }
+.logo-edit { position: relative; display: inline-grid; }
+.logo-btn { padding: 0; cursor: pointer; font: inherit; color: inherit; transition: transform .2s ease; }
+.logo-btn:hover { transform: scale(1.03); }
+.logo-btn:focus-visible { outline: 3px solid var(--kronk); outline-offset: 4px; }
+.logo-badge { position: absolute; right: 0; bottom: 6px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; pointer-events: none;
+  background: var(--surface); color: var(--ink); border: 2px solid var(--wcol, var(--gold)); box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
+.logo-panel { width: min(440px, 100%); display: grid; gap: 10px; text-align: center; padding: 14px 16px; border-radius: var(--r-l); background: color-mix(in srgb, var(--surface) 75%, transparent); border: 1px solid var(--line); }
+.logo-panel[hidden] { display: none; }
+.logo-panel .nav { justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .logo-btn { transition: none; } .logo-btn:hover { transform: none; } }
 .world-logo svg { width: 70%; height: 70%; }
 .world-logo .glyph-prev { width: 100%; height: 100%; display: grid; place-items: center; background: var(--node); }
 .world-logo .glyph-prev svg { width: 58%; height: 58%; }
@@ -1253,7 +1259,7 @@ const circleAt = (c, r) => `circle(${r.toFixed(1)}px at ${c.x.toFixed(1)}px ${c.
 function fillWorld(id) {
   const n = N[id];
   worldEl.style.setProperty("--wcol", (EL[n.el] || EL.gold)[1]);
-  worldHero.innerHTML = `<div class="world-logo">${logoPreview(id)}</div>`;
+  logoOpenFor = null;
   panelView = "node"; panel = worldBody; renderNode(id);
   const h = worldBody.querySelector("h2"); if (h) { h.id = "world-title"; h.setAttribute("tabindex", "-1"); }
   worldScroll.scrollTop = 0;
@@ -1571,14 +1577,31 @@ function logoPreview(id) {
   if (n.logo === "kronk") return `<svg viewBox="-60 -40 2137 1421" aria-hidden="true"><path d="${K_PATH}" transform="translate(-4 1341) scale(1 -1)" fill="#8F7FFF"/></svg>`;
   return `<span class="glyph-prev" style="color:${(EL[n.el] || EL.gold)[1]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPH[n.glyph] || ""}</svg></span>`;
 }
-function logoSection(id) {
-  const n = N[id];
-  return `<section class="info logo-row"><div class="logo-prev">${logoPreview(id)}</div>
-    <div class="logo-actions"><h3>Logo</h3>
-      <div class="nav"><label class="mini" for="logo-file">${n.logoSrc ? "Change logo" : "Upload a logo"}</label>${n.logoSrc ? `<button class="mini" type="button" id="logo-reset">Use the original</button>` : ""}</div>
-      <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+// The logo at the top of a project's page. Whoever can edit the project clicks it to change it;
+// a project with no image yet also shows "Upload a logo". The details only appear once they choose to change it.
+let logoOpenFor = null;
+const hasLogo = n => !!(n.logoSrc || n.logo === "you" || n.logo === "img" || n.logo === "kronk");
+const PENCIL = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+function renderHero(id, can) {
+  const n = N[id], has = hasLogo(n), open = can && logoOpenFor === id;
+  if (!can) { worldHero.innerHTML = `<div class="world-logo">${logoPreview(id)}</div>`; return; }
+  worldHero.innerHTML = `
+    <div class="logo-edit">
+      <button type="button" class="world-logo logo-btn" id="logo-toggle" aria-expanded="${open}" aria-controls="logo-panel" aria-label="${has ? "Change the logo for " : "Add a logo for "}${esc(n.name)}">${logoPreview(id)}</button>
+      <span class="logo-badge" aria-hidden="true">${PENCIL}</span>
+    </div>
+    ${has || open ? "" : `<button type="button" class="mini" id="logo-add" aria-controls="logo-panel" aria-expanded="false">Upload a logo</button>`}
+    <div class="logo-panel" id="logo-panel" ${open ? "" : "hidden"}>
       <p class="note">Use a square PNG or JPEG, ideally at least 512 × 512 pixels, so it stays sharp when people travel into your project. It's cropped to a circle on the map.</p>
-      <p class="err" id="logo-err" hidden></p></div></section>`;
+      <div class="nav">
+        <button type="button" class="btn primary" id="logo-pick">${has ? "Change image" : "Choose an image"}</button>
+        ${n.logoSrc ? `<button type="button" class="btn" id="logo-reset">Use the original</button>` : ""}
+        <button type="button" class="btn" id="logo-close">Done</button>
+      </div>
+      <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+      <p class="err" id="logo-err" hidden></p>
+    </div>`;
+  wireLogo(id);
 }
 // Shrink any picture to a 192px square JPEG so it fits comfortably in the shared store.
 function squareLogo(file) {
@@ -1606,16 +1629,22 @@ async function saveLogo(pid, src) {
   else { const m = mine(); m.logos[pid] = entry; await writeMine(m); }
 }
 function wireLogo(id) {
-  const input = panel.querySelector("#logo-file"); if (!input) return;
-  const err = panel.querySelector("#logo-err");
+  const q = s => worldHero.querySelector(s), input = q("#logo-file"); if (!input) return;
+  const err = q("#logo-err");
+  const setOpen = on => { logoOpenFor = on ? id : null; renderHero(id, true); const f = q(on ? "#logo-pick" : "#logo-toggle"); if (f) f.focus(); };
+  q("#logo-toggle").onclick = () => setOpen(logoOpenFor !== id);
+  const add = q("#logo-add"); if (add) add.onclick = () => setOpen(true);
+  q("#logo-close").onclick = () => setOpen(false);
+  q("#logo-pick").onclick = () => input.click();
+  q("#logo-panel").addEventListener("keydown", ev => { if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setOpen(false); } });
   const fail = e => { err.textContent = e && e.code === "type" ? "That file isn't an image this browser can read. Try a PNG or JPEG." : failText(e); err.hidden = false; };
   input.onchange = async () => {
     const f = input.files && input.files[0]; if (!f) return;
     err.hidden = true;
-    try { await saveLogo(id, await squareLogo(f)); scheduleRefresh(); toast("Logo updated on the map."); } catch (e) { fail(e); }
+    try { await saveLogo(id, await squareLogo(f)); logoOpenFor = null; scheduleRefresh(); toast("Logo updated on the map."); } catch (e) { fail(e); }
   };
-  const reset = panel.querySelector("#logo-reset");
-  if (reset) reset.onclick = () => twoTap(reset, "Tap again to use the original", async () => { await saveLogo(id, ""); scheduleRefresh(); });
+  const reset = q("#logo-reset");
+  if (reset) reset.onclick = () => twoTap(reset, "Tap again to use the original", async () => { await saveLogo(id, ""); logoOpenFor = null; scheduleRefresh(); });
 }
 // Each unfilled project gets its own line, always the same one, so it feels like part of the project.
 const EMPTY_NOONE = [
@@ -1662,7 +1691,6 @@ function renderNode(id) {
       : `<div class="info-head"><h2>${esc(n.name)}</h2>${can ? `<button class="mini" type="button" data-editf="name">Rename</button>` : ""}</div>`}
     <p class="note">${id === "ftd" ? "Held by all of us." : st.length ? "Run by " + esc(st.map(nameOf).join(", ")) + "." : n.tpl ? "Added to the map by " + esc(nameOf(n.by)) + "." : n.idea ? "Suggested by " + esc(nameOf(n.by)) + "." : "No one is running this yet."}${n.edited ? ` Last updated by ${esc(nameOf(n.edited.by))}.` : ""}${can && !st.includes(me) && isAdmin && id !== "ftd" ? " You can edit it as an admin, or mark yourself as running it." : ""}</p>
     ${runBtn ? `<div class="nav">${runBtn}</div>` : ""}
-    ${can ? logoSection(id) : ""}
     ${(() => {
       if (can) return INFO.map(f => infoSection(id, f)).join("");
       // "How to get involved" always shows for visitors: it's step 2 of the instructions at the top of the page
@@ -1701,7 +1729,7 @@ function renderNode(id) {
   if (rs) rs.onclick = () => guard(rs, async () => { await setStewards(id, [...st, me]); toast(`You now run ${n.name}. Your name shows on it.`); });
   const sb = panel.querySelector("#p-stepback");
   if (sb) sb.onclick = () => twoTap(sb, "Tap again to step back", async () => { await setStewards(id, st.filter(x => x !== me)); toast(`You've stepped back from ${n.name}.`); });
-  wireLogo(id);
+  if (panel === worldBody) renderHero(id, can);
   const off = panel.querySelector("#p-off");
   if (off) off.onclick = () => twoTap(off, "Tap again to take it off", async () => { await takeOff(id); overview(); });
   if (id === "fund") {
