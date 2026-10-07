@@ -227,6 +227,10 @@ a.btn { text-decoration: none; display: inline-block; }
 .pm-empty { padding: 10px; color: var(--ink-3); }
 /* the project world */
 body.in-world { overflow: hidden; }
+/* only the map softens while dreaming: a small area, so it stays smooth on phones */
+.mapbox { transition: filter 1.1s ease; }
+body.dreaming .mapbox { filter: blur(4px) saturate(1.2) brightness(.85); }
+@media (prefers-reduced-motion: reduce) { .mapbox { transition: none; } body.dreaming .mapbox { filter: none; } }
 .world { position: fixed; inset: 0; z-index: 40; color: var(--ink);
   background: radial-gradient(1100px 620px at 50% -12%, color-mix(in srgb, var(--wcol, var(--gold)) 34%, transparent), transparent 70%),
               radial-gradient(900px 500px at 50% 115%, color-mix(in srgb, var(--wcol, var(--gold)) 14%, transparent), transparent 70%), var(--bg); }
@@ -253,7 +257,7 @@ body.in-world { overflow: hidden; }
 .world-panel .info.is-empty { background: transparent; }
 .world-panel .world-pn { justify-content: space-between; border-top: 1px solid var(--line); padding-top: 18px; }
 .portal-logo { position: fixed; z-index: 41; border-radius: 50%; overflow: hidden; pointer-events: none; display: grid; place-items: center; background: #fff;
-  box-shadow: 0 0 0 3px var(--wcol, var(--gold)), 0 0 60px 16px color-mix(in srgb, var(--wcol, var(--gold)) 55%, transparent); will-change: transform, opacity; }
+  box-shadow: 0 0 0 3px var(--wcol, var(--gold)), 0 0 70px 22px color-mix(in srgb, var(--wcol, var(--gold)) 60%, transparent); will-change: transform, opacity, filter; }
 .portal-logo img { width: 100%; height: 100%; object-fit: cover; }
 .portal-logo svg { width: 70%; height: 70%; }
 .portal-logo .glyph-prev { width: 100%; height: 100%; display: grid; place-items: center; background: var(--node); }
@@ -1227,70 +1231,89 @@ function fillWorld(id) {
 }
 function focusWorld() { const h = worldBody.querySelector("h2"); if (h) h.focus({ preventScroll: true }); }
 function stopWorldAnims() { [worldEl, worldInner, portalLogo].forEach(el => el.getAnimations().forEach(a => a.cancel())); }
+// Timing, in milliseconds. Slow and dreamlike: the whole journey in takes about four seconds.
+const GLIDE = 1000, AWAKEN_AT = 950, DREAM = 3000, RETURN = 1800;
+function setLogo(c, id) {
+  portalLogo.innerHTML = logoPreview(id); portalLogo.hidden = false;
+  portalLogo.style.setProperty("--wcol", (EL[N[id].el] || EL.gold)[1]);
+  Object.assign(portalLogo.style, { left: c.x - c.r + "px", top: c.y - c.r + "px", width: c.r * 2 + "px", height: c.r * 2 + "px" });
+}
 function enterWorld(id) {
   clearTimeout(worldTimer); stopWorldAnims();
-  flyTo(gentleView(id), reduce ? 0 : 700);
+  // 1. glide: the map drifts slowly towards the project
+  flyTo(gentleView(id), reduce ? 0 : GLIDE);
   worldTimer = setTimeout(() => {
     const c = nodeOnScreen(id), far = portalReach(c);
+    const cover = far / c.r;            // the scale at which the logo fills the whole screen
     fillWorld(id);
     worldEl.hidden = false; worldOpen = true;
     document.body.classList.add("in-world"); document.querySelector(".wrap").inert = true;
-    if (reduce) { worldEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 }); focusWorld(); return; }
-    portalLogo.innerHTML = logoPreview(id); portalLogo.hidden = false;
-    portalLogo.style.setProperty("--wcol", (EL[N[id].el] || EL.gold)[1]);
-    Object.assign(portalLogo.style, { left: c.x - c.r + "px", top: c.y - c.r + "px", width: c.r * 2 + "px", height: c.r * 2 + "px" });
-    const T = 1500;
+    if (reduce) { worldEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 }); focusWorld(); return; }
+    document.body.classList.add("dreaming");          // the map behind softens out of focus
+    setLogo(c, id);
+    // 2. the logo awakens  3. we fly into it until it overflows the screen  4. it dissolves into light
     portalLogo.animate([
-      { transform: "scale(1)", opacity: 1, filter: "brightness(1)" },
-      { transform: "scale(1.3)", opacity: 1, filter: "brightness(1.25)", offset: .26 },
-      { transform: `scale(${(far / c.r * 1.15).toFixed(2)})`, opacity: 0, filter: "brightness(1.6)" }
-    ], { duration: T, easing: EASE, fill: "forwards" });
-    // state changes run on timers, not on animation "finished" events, which browsers can hold back (e.g. background tabs)
-    setTimeout(() => {
-      portalLogo.hidden = true;
-      // end every portal animation so the world is fully shown, even if the browser paused them
-      [portalLogo, worldEl, worldInner].forEach(el => el.getAnimations().forEach(a => a.cancel()));
-    }, T + 30);
+      { transform: "scale(1) rotate(0deg)", opacity: 1, filter: "brightness(1) blur(0px)", offset: 0 },
+      { transform: "scale(1.22) rotate(0deg)", opacity: 1, filter: "brightness(1.18) blur(0px)", offset: .2 },
+      { transform: `scale(${(cover * 1.5).toFixed(2)}) rotate(10deg)`, opacity: 1, filter: "brightness(1.3) blur(0px)", offset: .72 },
+      { transform: `scale(${(cover * 2.6).toFixed(2)}) rotate(16deg)`, opacity: 0, filter: "brightness(1.9) blur(14px)", offset: 1 }
+    ], { duration: DREAM, easing: "cubic-bezier(.45, 0, .25, 1)", fill: "forwards" });
+    // the world waits behind the logo, then is there as it melts away
     worldEl.animate([
-      { clipPath: circleAt(c, c.r * 1.3) },
-      { clipPath: circleAt(c, c.r * 1.3), offset: .26 },
-      { clipPath: circleAt(c, far) }
-    ], { duration: T, easing: EASE });
+      { opacity: 0, offset: 0 }, { opacity: 0, offset: .6 }, { opacity: 1, offset: .8 }, { opacity: 1, offset: 1 }
+    ], { duration: DREAM, fill: "forwards" });
+    // 5. the project's content drifts up into place
     worldInner.animate([
-      { opacity: 0, transform: "translateY(28px) scale(.96)" },
-      { opacity: 0, transform: "translateY(28px) scale(.96)", offset: .55 },
-      { opacity: 1, transform: "none" }
-    ], { duration: T, easing: "ease-out" });
-    setTimeout(focusWorld, T - 300);
-  }, reduce ? 0 : 650);
+      { opacity: 0, transform: "translateY(36px) scale(1.04)", filter: "blur(6px)", offset: 0 },
+      { opacity: 0, transform: "translateY(36px) scale(1.04)", filter: "blur(6px)", offset: .74 },
+      { opacity: 1, transform: "none", filter: "blur(0px)", offset: 1 }
+    ], { duration: DREAM + 400, easing: "ease-out", fill: "forwards" });
+    // state changes run on timers, not on animation "finished" events, which browsers can hold back (e.g. background tabs);
+    // at the end every portal animation is cleared, so the world is always left fully shown
+    setTimeout(() => {
+      portalLogo.hidden = true; document.body.classList.remove("dreaming");
+      [portalLogo, worldEl, worldInner].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+    }, DREAM + 450);
+    setTimeout(focusWorld, DREAM - 200);
+  }, reduce ? 0 : AWAKEN_AT);
 }
 function swapWorld(id) {
-  flyTo(gentleView(id), reduce ? 0 : 700);
+  flyTo(gentleView(id), reduce ? 0 : GLIDE);
   if (reduce) { fillWorld(id); focusWorld(); return; }
   worldInner.getAnimations().forEach(a => a.cancel());
-  worldInner.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-12px)" }], { duration: 200, easing: "ease-in", fill: "forwards" });
+  worldInner.animate([{ opacity: 1, transform: "none", filter: "blur(0px)" }, { opacity: 0, transform: "translateY(-14px)", filter: "blur(4px)" }], { duration: 320, easing: "ease-in", fill: "forwards" });
   clearTimeout(worldTimer);
   worldTimer = setTimeout(() => {
     fillWorld(id); worldInner.getAnimations().forEach(a => a.cancel());
-    worldInner.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "ease-out" });
+    worldInner.animate([{ opacity: 0, transform: "translateY(18px)", filter: "blur(4px)" }, { opacity: 1, transform: "none", filter: "blur(0px)" }], { duration: 600, easing: "ease-out" });
     focusWorld();
-  }, 210);
+  }, 330);
 }
 function exitWorld() {
   if (!worldOpen) return;
   clearTimeout(worldTimer);
   const id = current;
   const done = () => {
-    stopWorldAnims(); worldEl.hidden = true; worldOpen = false;
-    document.body.classList.remove("in-world"); document.querySelector(".wrap").inert = false;
+    stopWorldAnims(); portalLogo.hidden = true; worldEl.hidden = true; worldOpen = false;
+    document.body.classList.remove("in-world", "dreaming"); document.querySelector(".wrap").inert = false;
     panel = sidePanel; panelView = "overview"; renderOverview(); hud(); paint(); markTabs();
     const g = nodeEls[id]; if (g) g.focus({ preventScroll: true });
   };
   if (reduce) return done();
-  const c = nodeOnScreen(id), far = portalReach(c);
-  worldInner.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(12px) scale(.98)" }], { duration: 260, easing: "ease-in", fill: "forwards" });
-  worldEl.animate([{ clipPath: circleAt(c, far) }, { clipPath: circleAt(c, c.r) }], { duration: 750, easing: EASE, fill: "forwards" });
-  worldTimer = setTimeout(done, 760);
+  // the dream in reverse: the world fades, the logo gathers back out of the light and settles into its circle
+  stopWorldAnims();
+  document.body.classList.add("dreaming");
+  const c = nodeOnScreen(id), cover = portalReach(c) / c.r;
+  setLogo(c, id);
+  worldInner.animate([{ opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(6px)", transform: "translateY(16px)" }], { duration: 420, easing: "ease-in", fill: "forwards" });
+  worldEl.animate([{ opacity: 1, offset: 0 }, { opacity: 1, offset: .28 }, { opacity: 0, offset: .5 }, { opacity: 0, offset: 1 }], { duration: RETURN, fill: "forwards" });
+  portalLogo.animate([
+    { transform: `scale(${(cover * 2.4).toFixed(2)}) rotate(16deg)`, opacity: 0, filter: "brightness(1.8) blur(14px)", offset: 0 },
+    { transform: `scale(${(cover * 1.4).toFixed(2)}) rotate(10deg)`, opacity: 1, filter: "brightness(1.25) blur(0px)", offset: .32 },
+    { transform: "scale(1) rotate(0deg)", opacity: 1, filter: "brightness(1) blur(0px)", offset: 1 }
+  ], { duration: RETURN, easing: "cubic-bezier(.45, 0, .25, 1)", fill: "forwards" });
+  setTimeout(() => document.body.classList.remove("dreaming"), RETURN * .6);
+  worldTimer = setTimeout(done, RETURN + 40);
 }
 document.getElementById("w-back").onclick = () => exitWorld();
 document.getElementById("w-prev").onclick = () => go(-1);
