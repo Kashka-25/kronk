@@ -225,6 +225,39 @@ a.btn { text-decoration: none; display: inline-block; }
 .pm-list b { display: block; font-weight: 600; color: var(--ink); }
 .pm-list small { display: block; color: var(--ink-2); font-size: 13px; }
 .pm-empty { padding: 10px; color: var(--ink-3); }
+/* the project world */
+body.in-world { overflow: hidden; }
+.world { position: fixed; inset: 0; z-index: 40; color: var(--ink);
+  background: radial-gradient(1100px 620px at 50% -12%, color-mix(in srgb, var(--wcol, var(--gold)) 34%, transparent), transparent 70%),
+              radial-gradient(900px 500px at 50% 115%, color-mix(in srgb, var(--wcol, var(--gold)) 14%, transparent), transparent 70%), var(--bg); }
+.world-scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; }
+.world-top { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(10px); }
+.world-nav { display: flex; gap: 8px; }
+.world-nav .btn { min-width: 44px; }
+.world-inner { max-width: 760px; margin: 0 auto; padding: 18px 20px 72px; }
+.world-hero { display: grid; place-items: center; padding: 12px 0 18px; }
+.world-logo { width: 136px; height: 136px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #fff;
+  border: 3px solid var(--wcol, var(--gold)); box-shadow: 0 0 0 12px color-mix(in srgb, var(--wcol, var(--gold)) 16%, transparent), 0 22px 60px rgba(0, 0, 0, .45); }
+.world-logo img { width: 100%; height: 100%; object-fit: cover; }
+.world-logo svg { width: 70%; height: 70%; }
+.world-logo .glyph-prev { width: 100%; height: 100%; display: grid; place-items: center; background: var(--node); }
+.world-logo .glyph-prev svg { width: 58%; height: 58%; }
+.world-panel { position: static !important; max-height: none !important; overflow: visible !important; background: transparent !important; border: 0 !important; padding: 0 !important; gap: 20px; }
+.world-panel .kicker, .world-panel > .note, .world-panel > .info-head { justify-content: center; text-align: center; }
+.world-panel > .info-head { flex-direction: column; align-items: center; gap: 6px; }
+.world-panel h2 { font-size: clamp(40px, 7vw, 64px); text-align: center; }
+.world-panel h2:focus { outline: none; }
+.world-panel p, .world-panel li { font-size: 16.5px; }
+.world-panel .info { background: color-mix(in srgb, var(--surface) 70%, transparent); border-radius: var(--r-l); padding: 16px 18px; }
+.world-panel .info.is-empty { background: transparent; }
+.world-panel .world-pn { justify-content: space-between; border-top: 1px solid var(--line); padding-top: 18px; }
+.portal-logo { position: fixed; z-index: 41; border-radius: 50%; overflow: hidden; pointer-events: none; display: grid; place-items: center; background: #fff;
+  box-shadow: 0 0 0 3px var(--wcol, var(--gold)), 0 0 60px 16px color-mix(in srgb, var(--wcol, var(--gold)) 55%, transparent); will-change: transform, opacity; }
+.portal-logo img { width: 100%; height: 100%; object-fit: cover; }
+.portal-logo svg { width: 70%; height: 70%; }
+.portal-logo .glyph-prev { width: 100%; height: 100%; display: grid; place-items: center; background: var(--node); }
+.portal-logo .glyph-prev svg { width: 58%; height: 58%; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
 .legend span { display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
@@ -379,7 +412,7 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
     <p class="lede">A map of the projects people in our community are running. Find one you'd like to help with, or suggest your own.</p>
   </header>
   <ol class="howto" aria-label="How to use this page">
-    <li><span><b>Tap a circle</b> on the map to see a project</span></li>
+    <li><span><b>Tap a circle</b> on the map to step into a project</span></li>
     <li><span><b>Read “How to get involved”</b> to join in</span></li>
     <li><span><b>Have an idea?</b> Suggest a project</span></li>
   </ol>
@@ -445,6 +478,20 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
     </div>
   </div>
 </div>
+
+<div id="world" class="world" role="dialog" aria-modal="true" aria-labelledby="world-title" hidden>
+  <div class="world-scroll" id="world-scroll">
+    <div class="world-top">
+      <button class="btn" id="w-back" type="button">← Back to the map</button>
+      <div class="world-nav"><button class="btn" id="w-prev" type="button" aria-label="Previous project">←</button><button class="btn" id="w-next" type="button" aria-label="Next project">→</button></div>
+    </div>
+    <div class="world-inner" id="world-inner">
+      <div class="world-hero" id="world-hero"></div>
+      <div class="panel world-panel" id="world-body"></div>
+    </div>
+  </div>
+</div>
+<div id="portal-logo" class="portal-logo" aria-hidden="true" hidden></div>
 
 <script>
 const NS = "http://www.w3.org/2000/svg";
@@ -699,7 +746,8 @@ function layoutWeb() {
 
 // ── Drawing ──
 const svg = document.getElementById("map");
-const panel = document.getElementById("panel");
+const sidePanel = document.getElementById("panel");
+let panel = sidePanel;
 const mk = (tag, attrs = {}, parent) => { const el = document.createElementNS(NS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); if (parent) parent.appendChild(el); return el; };
 const defs = mk("defs", {}, svg);
 defs.innerHTML = `
@@ -1133,16 +1181,121 @@ document.addEventListener("keydown", ev => {
   if (/INPUT|TEXTAREA|SELECT/.test(ev.target.tagName)) return;
   if (ev.key === "ArrowRight") { ev.preventDefault(); go(1); }
   if (ev.key === "ArrowLeft") { ev.preventDefault(); go(-1); }
+  if (ev.key === "Escape" && worldOpen && !formOpen) { ev.preventDefault(); return exitWorld(); }
   if (ev.key === "Escape" && !formOpen) overview();
 });
 
 function open(id) {
   if (!N[id]) return;
   editingField = null;
-  formOpen = false; current = id; hover = null; panelView = "node"; markTabs(); if (location.hash) setHash("");
-  flyTo(viewFor(id)); renderNode(id); hud(); paint(); ripple(id);
+  // the side panel keeps what it shows while the map glides in; the project appears once inside its world
+  formOpen = false; current = id; hover = null; if (worldOpen) panelView = "node"; markTabs(); if (location.hash) setHash("");
+  hud(); paint(); ripple(id);
+  if (worldOpen) swapWorld(id); else enterWorld(id);
 }
-function overview() { formOpen = false; current = null; panelView = "overview"; flyTo(BASE, 800); renderOverview(); hud(); paint(); markTabs(); setHash(""); }
+
+// ── Map → project → logo → portal → project world ──
+// 1. the map glides gently towards the project (no deep zoom)
+// 2. its logo lifts off the map and brightens: the focal point
+// 3. the logo grows into a portal, a circle opening from inside it until it fills the screen
+// 4. the project's world rises into view from within
+// 5. "Back to the map" reverses it, closing the world back into its circle
+const worldEl = document.getElementById("world"), worldBody = document.getElementById("world-body"),
+  worldHero = document.getElementById("world-hero"), worldInner = document.getElementById("world-inner"),
+  worldScroll = document.getElementById("world-scroll"), portalLogo = document.getElementById("portal-logo");
+let worldOpen = false, worldTimer = null;
+const EASE = "cubic-bezier(.65, 0, .35, 1)";
+function gentleView(id) {
+  const p = cur[id] || { x: CX, y: CY }, w = 900, h = w * BASE.h / BASE.w;
+  return { x: p.x - w / 2, y: p.y - h / 2, w, h };
+}
+function nodeOnScreen(id) {
+  const g = nodeEls[id], c = g && g.querySelector(".lift > circle");
+  const r = c && c.getBoundingClientRect();
+  if (!r || !r.width || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) return { x: innerWidth / 2, y: innerHeight / 2, r: 36 };
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 };
+}
+const portalReach = c => Math.hypot(Math.max(c.x, innerWidth - c.x), Math.max(c.y, innerHeight - c.y)) + 24;
+const circleAt = (c, r) => `circle(${r.toFixed(1)}px at ${c.x.toFixed(1)}px ${c.y.toFixed(1)}px)`;
+function fillWorld(id) {
+  const n = N[id];
+  worldEl.style.setProperty("--wcol", (EL[n.el] || EL.gold)[1]);
+  worldHero.innerHTML = `<div class="world-logo">${logoPreview(id)}</div>`;
+  panelView = "node"; panel = worldBody; renderNode(id);
+  const h = worldBody.querySelector("h2"); if (h) { h.id = "world-title"; h.setAttribute("tabindex", "-1"); }
+  worldScroll.scrollTop = 0;
+}
+function focusWorld() { const h = worldBody.querySelector("h2"); if (h) h.focus({ preventScroll: true }); }
+function stopWorldAnims() { [worldEl, worldInner, portalLogo].forEach(el => el.getAnimations().forEach(a => a.cancel())); }
+function enterWorld(id) {
+  clearTimeout(worldTimer); stopWorldAnims();
+  flyTo(gentleView(id), reduce ? 0 : 700);
+  worldTimer = setTimeout(() => {
+    const c = nodeOnScreen(id), far = portalReach(c);
+    fillWorld(id);
+    worldEl.hidden = false; worldOpen = true;
+    document.body.classList.add("in-world"); document.querySelector(".wrap").inert = true;
+    if (reduce) { worldEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 }); focusWorld(); return; }
+    portalLogo.innerHTML = logoPreview(id); portalLogo.hidden = false;
+    portalLogo.style.setProperty("--wcol", (EL[N[id].el] || EL.gold)[1]);
+    Object.assign(portalLogo.style, { left: c.x - c.r + "px", top: c.y - c.r + "px", width: c.r * 2 + "px", height: c.r * 2 + "px" });
+    const T = 1500;
+    portalLogo.animate([
+      { transform: "scale(1)", opacity: 1, filter: "brightness(1)" },
+      { transform: "scale(1.3)", opacity: 1, filter: "brightness(1.25)", offset: .26 },
+      { transform: `scale(${(far / c.r * 1.15).toFixed(2)})`, opacity: 0, filter: "brightness(1.6)" }
+    ], { duration: T, easing: EASE, fill: "forwards" });
+    // state changes run on timers, not on animation "finished" events, which browsers can hold back (e.g. background tabs)
+    setTimeout(() => {
+      portalLogo.hidden = true;
+      // end every portal animation so the world is fully shown, even if the browser paused them
+      [portalLogo, worldEl, worldInner].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+    }, T + 30);
+    worldEl.animate([
+      { clipPath: circleAt(c, c.r * 1.3) },
+      { clipPath: circleAt(c, c.r * 1.3), offset: .26 },
+      { clipPath: circleAt(c, far) }
+    ], { duration: T, easing: EASE });
+    worldInner.animate([
+      { opacity: 0, transform: "translateY(28px) scale(.96)" },
+      { opacity: 0, transform: "translateY(28px) scale(.96)", offset: .55 },
+      { opacity: 1, transform: "none" }
+    ], { duration: T, easing: "ease-out" });
+    setTimeout(focusWorld, T - 300);
+  }, reduce ? 0 : 650);
+}
+function swapWorld(id) {
+  flyTo(gentleView(id), reduce ? 0 : 700);
+  if (reduce) { fillWorld(id); focusWorld(); return; }
+  worldInner.getAnimations().forEach(a => a.cancel());
+  worldInner.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-12px)" }], { duration: 200, easing: "ease-in", fill: "forwards" });
+  clearTimeout(worldTimer);
+  worldTimer = setTimeout(() => {
+    fillWorld(id); worldInner.getAnimations().forEach(a => a.cancel());
+    worldInner.animate([{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "ease-out" });
+    focusWorld();
+  }, 210);
+}
+function exitWorld() {
+  if (!worldOpen) return;
+  clearTimeout(worldTimer);
+  const id = current;
+  const done = () => {
+    stopWorldAnims(); worldEl.hidden = true; worldOpen = false;
+    document.body.classList.remove("in-world"); document.querySelector(".wrap").inert = false;
+    panel = sidePanel; panelView = "overview"; renderOverview(); hud(); paint(); markTabs();
+    const g = nodeEls[id]; if (g) g.focus({ preventScroll: true });
+  };
+  if (reduce) return done();
+  const c = nodeOnScreen(id), far = portalReach(c);
+  worldInner.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(12px) scale(.98)" }], { duration: 260, easing: "ease-in", fill: "forwards" });
+  worldEl.animate([{ clipPath: circleAt(c, far) }, { clipPath: circleAt(c, c.r) }], { duration: 750, easing: EASE, fill: "forwards" });
+  worldTimer = setTimeout(done, 760);
+}
+document.getElementById("w-back").onclick = () => exitWorld();
+document.getElementById("w-prev").onclick = () => go(-1);
+document.getElementById("w-next").onclick = () => go(1);
+function overview() { if (worldOpen) return exitWorld(); formOpen = false; current = null; panelView = "overview"; flyTo(BASE, 800); renderOverview(); hud(); paint(); markTabs(); setHash(""); }
 function show(viewName) { formOpen = false; current = null; panelView = viewName; paint(); hud(); renderPanel(); panel.scrollTop = 0; markTabs(); }
 function renderPanel() {
   if (formOpen) return;
@@ -1348,6 +1501,7 @@ function renderNode(id) {
     </div>`;
   wire();
   panel.querySelector("#p-back").onclick = () => { editingField = null; go(-1); };
+  if (panel === worldBody) panel.querySelectorAll("#p-back, #p-next").forEach(b => b.closest(".nav").classList.add("world-pn"));
   panel.querySelector("#p-next").onclick = () => { editingField = null; go(1); };
   panel.querySelectorAll("[data-editf]").forEach(b => b.onclick = () => {
     editingField = b.dataset.editf; formOpen = true; renderNode(id);
@@ -1727,7 +1881,7 @@ const TOUR = [
   { sel: ".howto", title: "Start here", text: "These three steps are all you need: tap a circle, read how to get involved, or suggest a project." },
   { sel: "#map", title: "The map", text: "Each circle is a project someone in our community is running. FreeTheDream, the idea behind it all, sits in the middle." },
   { sel: "#pm-toggle", title: "All projects", text: "Prefer a list? Open All projects to see every project as a list and jump straight to one." },
-  { sel: "#map", title: "Tap a circle", text: "Tap any project to zoom in and read about it. The details open beside the map, or below it on a phone." },
+  { sel: "#map", title: "Tap a circle", text: "Tap any project to travel into it: its logo opens into the project's own page. “Back to the map” brings you back." },
   { sel: ".hud", title: "Browse", text: "Previous and Next take you from project to project. The ⤢ button shows the whole map again." },
   { sel: "#b-drop", title: "Suggest a project", text: "Have an idea the community could help with? Suggest it. An admin reviews it, and once approved it appears on the map." },
   { sel: "#b-sugg", title: "Suggestions", text: "See the ideas people have suggested, and follow the ones you like. Admins can see how many people follow each one." },
@@ -1907,7 +2061,7 @@ function renderProjectMenu() {
   pmList.innerHTML = projects.length
     ? ["ftd", ...projects].map(id => `<li><button type="button" data-pm="${esc(id)}"><i class="dot" style="background:${(EL[N[id].el] || EL.gold)[1]}" aria-hidden="true"></i><span><b>${esc(N[id].name)}</b>${id === "ftd" ? `<small>The idea at the centre</small>` : (N[id].verb || N[id].what) ? `<small>${esc(oneLine(N[id].verb || N[id].what))}</small>` : ""}</span></button></li>`).join("")
     : `<li class="pm-empty">No projects on the map yet.</li>`;
-  pmList.querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { closeProjectMenu(false); open(b.dataset.pm); revealPanel(); });
+  pmList.querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { closeProjectMenu(false); open(b.dataset.pm); });
 }
 function openProjectMenu() {
   renderProjectMenu(); pmPop.hidden = false; pmToggle.setAttribute("aria-expanded", "true");
