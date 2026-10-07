@@ -20,7 +20,8 @@ Source: [`Kashka-25/free-the-dream-map`](https://github.com/Kashka-25/free-the-d
 - **Travelling into a project.** The logo works like a portal. Selecting a
   project glides it to the centre while the map darkens; its logo lifts and
   pulls you in until it fills the screen, a dark core opens at its heart,
-  and the project's full-screen page opens out from inside it. Clicks are
+  and the project's full-screen page opens out from inside it, its name
+  appearing in the centre before rising into place. Clicks are
   paused until it finishes. "Back to the map" (or Esc) plays it in reverse.
   Reduced motion gets a simple fade.
 - **All projects.** A dropdown in the top bar lists every project as dot

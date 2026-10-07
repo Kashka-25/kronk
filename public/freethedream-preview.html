@@ -277,6 +277,9 @@ body.dreaming .world { z-index: 43; }
 .pv-hole::before { content: ""; position: absolute; inset: 0; border-radius: 50%;
   background: conic-gradient(from 0deg, transparent 0 12%, color-mix(in srgb, var(--wcol, var(--gold)) 50%, #fff) 22%, transparent 36% 58%, color-mix(in srgb, var(--wcol, var(--gold)) 70%, #fff) 70%, transparent 84%);
   -webkit-mask: radial-gradient(circle, transparent 50%, #000 56%, transparent 65%); mask: radial-gradient(circle, transparent 50%, #000 56%, transparent 65%); }
+/* the project's name, rising out of the core as the portal opens, then settling into the page as its heading */
+.pv-title { position: fixed; z-index: 45; pointer-events: none; opacity: 0; text-align: center; color: var(--ink); will-change: transform, opacity;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--wcol, var(--gold)) 85%, transparent), 0 0 3px rgba(0, 0, 0, .5); }
 /* the rim the world shows through */
 .pv-ring { z-index: 44; opacity: 0; border: calc(var(--u) * .9) solid color-mix(in srgb, var(--wcol, var(--gold)) 45%, #fff);
   box-shadow: 0 0 calc(var(--u) * 9) calc(var(--u) * 3) color-mix(in srgb, var(--wcol, var(--gold)) 75%, transparent), inset 0 0 calc(var(--u) * 9) calc(var(--u) * 3) color-mix(in srgb, var(--wcol, var(--gold)) 60%, transparent); }
@@ -519,6 +522,7 @@ footer code { font-family: var(--font-mono); user-select: all; overflow-wrap: an
   <div class="pv-logo" id="portal-logo"></div>
   <div class="pv-hole" id="pv-hole"></div>
   <div class="pv-ring" id="pv-ring"></div>
+  <div class="pv-title" id="pv-title"></div>
 </div>
 
 <script>
@@ -1229,7 +1233,7 @@ function open(id) {
 // 2. the logo lifts off the map and takes over while the universe recedes into darkness
 // 3. we are pulled into the logo, faster and faster, until it fills the screen; light streams in around us
 // 4. a dark core opens at its heart and swallows it: the event horizon
-// 5. the project's world opens out from inside that core, and its content settles into place
+// 5. the project's world opens out from inside that core: its name appears in the centre, then rises into place as the page settles
 // "Back to the map" plays the same journey in reverse.
 const worldEl = document.getElementById("world"), worldBody = document.getElementById("world-body"),
   worldHero = document.getElementById("world-hero"), worldInner = document.getElementById("world-inner"),
@@ -1258,20 +1262,20 @@ function fillWorld(id) {
 }
 function focusWorld() { const h = worldBody.querySelector("h2"); if (h) h.focus({ preventScroll: true }); }
 function stopWorldAnims() { [worldEl, worldInner, portalLogo].forEach(el => el.getAnimations().forEach(a => a.cancel())); }
-// Timing, in milliseconds: about four and a half seconds in, two and a half back out.
-const ENTER = 4400, LEAVE = 2600;
+// Timing, in milliseconds, written at a slow reference pace and scaled by PACE: about 3.3 seconds in, 2 back out.
+const PACE = .75, ENTER = 4400, LEAVE = 2600;
 const portalEl = document.getElementById("portal"), pvVeil = document.getElementById("pv-veil"), pvHole = document.getElementById("pv-hole"),
-  pvRing = document.getElementById("pv-ring"), pvDust = document.getElementById("pv-dust"), mapboxEl = document.querySelector(".mapbox");
+  pvRing = document.getElementById("pv-ring"), pvTitle = document.getElementById("pv-title"), pvDust = document.getElementById("pv-dust"), mapboxEl = document.querySelector(".mapbox");
 let portalBusy = false, portalTimers = [], dustRaf = 0, scrollRaf = 0;
 function glideScroll(y0, y1, ms) {
   cancelAnimationFrame(scrollRaf); if (y0 === y1) return;
   const t0 = performance.now(), ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   const step = now => { const k = Math.min(1, (now - t0) / ms); window.scrollTo(0, y0 + (y1 - y0) * ease(k)); if (k < 1) scrollRaf = requestAnimationFrame(step); };
   scrollRaf = requestAnimationFrame(step);
-  at(ms + 50, () => window.scrollTo(0, y1));         // lands exactly, even if frames were held back
+  portalTimers.push(setTimeout(() => window.scrollTo(0, y1), ms + 50));   // lands exactly, even if frames were held back
 }
-const at = (ms, fn) => portalTimers.push(setTimeout(fn, ms));
-const pvLayers = () => [pvVeil, portalLogo, pvHole, pvRing, worldEl, worldInner, mapboxEl, ...portalLogo.querySelectorAll(".pv-shade")];
+const at = (ms, fn) => portalTimers.push(setTimeout(fn, ms * PACE));
+const pvLayers = () => [pvVeil, portalLogo, pvHole, pvRing, pvTitle, worldEl, worldInner, mapboxEl, ...portalLogo.querySelectorAll(".pv-shade")];
 // lay out the stage around the project's circle. Each layer is drawn at a fixed size and only ever scaled (GPU-friendly);
 // the logo is drawn large and starts scaled down, so it stays crisp as it grows. "far" reaches the farthest screen corner.
 function stagePortal(c, id) {
@@ -1279,11 +1283,26 @@ function stagePortal(c, id) {
   const place = (el, r) => { el._r = r; Object.assign(el.style, { left: c.x - r + "px", top: c.y - r + "px", width: 2 * r + "px", height: 2 * r + "px" }); el.style.setProperty("--u", (2 * r / 100).toFixed(2) + "px"); };
   place(portalLogo, Math.min(far, 560)); place(pvHole, Math.min(far, 320)); place(pvRing, Math.min(far, 420));
   portalLogo.innerHTML = logoPreview(id) + `<i class="pv-shade"></i>`;
-  [portalLogo, pvHole, pvRing, worldEl].forEach(el => el.style.setProperty("--wcol", col));
+  [portalLogo, pvHole, pvRing, pvTitle, worldEl].forEach(el => el.style.setProperty("--wcol", col));
   pvVeil.style.setProperty("--cx", c.x + "px"); pvVeil.style.setProperty("--cy", c.y + "px");
   portalEl.hidden = false;
   return { far, col };
 }
+// the floating title matches the world's heading exactly (font, size, width), so it can hand over to it without a jump.
+// Returns how far the heading sits from the portal's centre once the content is at full size.
+function titleFlight(c, id) {
+  const h = worldBody.querySelector("h2"); if (!h) return null;
+  const box = worldInner.getBoundingClientRect(), hr = h.getBoundingClientRect(), cs = getComputedStyle(h);
+  // the content may still be drawn slightly smaller while it waits to appear: undo that scale (it is about its centre)
+  const k = box.width / worldInner.offsetWidth || 1, ox = box.left + box.width / 2, oy = box.top + box.height / 2;
+  const x = ox + (hr.left + hr.width / 2 - ox) / k, y = oy + (hr.top + hr.height / 2 - oy) / k;
+  pvTitle.textContent = N[id].name;
+  Object.assign(pvTitle.style, { left: c.x - h.offsetWidth / 2 + "px", top: c.y - h.offsetHeight / 2 + "px", width: h.offsetWidth + "px",
+    font: cs.font, letterSpacing: cs.letterSpacing, lineHeight: cs.lineHeight });
+  h.style.visibility = "hidden";                      // one title on screen at a time
+  return { dx: x - c.x, dy: y - c.y, h };
+}
+const tt = (x, y, s) => `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s})`;
 // a layer scaled so its radius is r pixels
 const sc = (el, r, rot = 0) => `scale(${Math.max(.0005, r / el._r).toFixed(4)}) rotate(${rot.toFixed(1)}deg)`;
 const ring = (c, r) => `circle(${Math.max(.1, r).toFixed(1)}px at ${c.x.toFixed(1)}px ${c.y.toFixed(1)}px)`;
@@ -1293,7 +1312,7 @@ function pullFrames(r0, r1, rot0, rot1, n, shape) {
 }
 // light streaming into (dir 1) or out of (dir -1) the portal, spiralling. One small canvas, fewer specks on phones.
 function runDust(c, far, col, delay, dur, dir) {
-  cancelAnimationFrame(dustRaf);
+  cancelAnimationFrame(dustRaf); delay *= PACE; dur *= PACE;
   const dpr = Math.min(devicePixelRatio || 1, 1.5), W = innerWidth, H = innerHeight, ctx = pvDust.getContext("2d");
   pvDust.width = W * dpr; pvDust.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
   const cols = [col, "#ffffff", "#cbb8ff", col], n = W < 700 ? 44 : 96, inner = far * .05, outer = far * 1.05;
@@ -1335,10 +1354,11 @@ function clearPortal() {
   portalTimers.forEach(clearTimeout); portalTimers = [];
   cancelAnimationFrame(dustRaf); cancelAnimationFrame(scrollRaf); pvDust.getContext("2d").clearRect(0, 0, pvDust.width, pvDust.height);
   pvLayers().forEach(el => el.getAnimations().forEach(a => a.cancel()));
-  mapboxEl.style.transformOrigin = "";
+  mapboxEl.style.transformOrigin = ""; pvTitle.textContent = "";
+  const h = worldBody.querySelector("h2"); if (h) h.style.visibility = "";
   portalEl.hidden = true; document.body.classList.remove("dreaming"); portalBusy = false;
 }
-const pvAnim = (el, frames, delay, duration, easing = "linear") => el.animate(frames, { delay, duration, easing, fill: "both" });
+const pvAnim = (el, frames, delay, duration, easing = "linear") => el.animate(frames, { delay: delay * PACE, duration: duration * PACE, easing, fill: "both" });
 function enterWorld(id) {
   clearTimeout(worldTimer); clearPortal(); stopWorldAnims();
   const wrap = document.querySelector(".wrap"), goal = clampView(gentleView(id));
@@ -1354,7 +1374,7 @@ function enterWorld(id) {
   portalBusy = true;                                  // from the click on, nothing else can be opened, pressed or clicked
   const { far, col } = stagePortal(c, id), A = pvAnim;
   // 1. focus: a gentle glide, no deep zoom
-  flyTo(goal, 1000); glideScroll(y0, y1, 1000);
+  flyTo(goal, 1000 * PACE); glideScroll(y0, y1, 1000 * PACE);
   // 2. the universe recedes: it darkens around the project and drifts slowly towards us (parallax against the much faster logo)
   at(650, () => document.body.classList.add("dreaming"));
   A(pvVeil, [{ opacity: 0 }, { opacity: 1 }], 700, 1300, "ease-in-out");
@@ -1378,7 +1398,16 @@ function enterWorld(id) {
   ], 2200, 1700);
   // 5. the world opens from inside the core, its rim glowing, until it is all there is
   const opening = [{ r: .1, o: 0, e: "ease-out" }, { r: far * .1, o: .2, e: "cubic-bezier(.55, 0, .8, .45)" }, { r: far * 1.12, o: .75, e: "linear" }, { r: far * 1.12, o: 1 }];
-  at(3000, arrive);
+  at(3000, () => {
+    arrive();
+    const f = titleFlight(c, id); if (!f) return;
+    pvAnim(pvTitle, [
+      { transform: tt(0, 0, .5), opacity: 0, offset: 0, easing: "cubic-bezier(.2, .7, .3, 1)" },
+      { transform: tt(0, 0, 1.06), opacity: 1, offset: .32, easing: "ease-in-out" },
+      { transform: tt(0, 0, 1), opacity: 1, offset: .58, easing: "cubic-bezier(.6, 0, .2, 1)" },
+      { transform: tt(f.dx, f.dy, 1), opacity: 1, offset: 1 }
+    ], 200, 1180);
+  });
   A(worldEl, opening.map(f => ({ clipPath: ring(c, f.r), offset: f.o, easing: f.e })), 3150, 1000);
   A(pvRing, opening.map((f, i) => ({ transform: sc(pvRing, f.r), opacity: [0, 1, 1, 0][i], offset: f.o, easing: f.e })), 3150, 1000);
   A(worldInner, [{ opacity: 0, transform: "scale(.9)" }, { opacity: 1, transform: "none" }], 3450, 950, "cubic-bezier(.2, .7, .2, 1)");
@@ -1412,6 +1441,12 @@ function exitWorld() {
   const c = nodeOnScreen(id), box = mapboxEl.getBoundingClientRect();
   portalBusy = true; document.body.classList.add("dreaming");
   const { far, col } = stagePortal(c, id), A = pvAnim;
+  const f = titleFlight(c, id);
+  if (f) A(pvTitle, [
+    { transform: tt(f.dx, f.dy, 1), opacity: 1, offset: 0, easing: "cubic-bezier(.6, 0, .3, 1)" },
+    { transform: tt(0, 0, 1), opacity: 1, offset: .45, easing: "ease-in" },
+    { transform: tt(0, 0, .35), opacity: 0, offset: 1 }
+  ], 0, 950);
   A(worldInner, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(.94)" }], 0, 380, "ease-in");
   const closing = [{ r: far * 1.12, o: 0, e: "cubic-bezier(.3, 0, .2, 1)" }, { r: far * .1, o: .78, e: "ease-in" }, { r: .1, o: 1 }];
   A(worldEl, closing.map(f => ({ clipPath: ring(c, f.r), offset: f.o, easing: f.e })), 150, 1000);
