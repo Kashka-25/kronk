@@ -1437,6 +1437,7 @@ function exitWorld() {
   const done = () => {
     clearPortal(); worldEl.hidden = true; worldOpen = false;
     document.body.classList.remove("in-world"); wrap.inert = false;
+    flyTo(BASE, reduce ? 0 : 1100);                   // back out to the whole map, just as it was first seen
     panel = sidePanel; panelView = "overview"; renderOverview(); hud(); paint(); markTabs();
     const g = nodeEls[id]; if (g) g.focus({ preventScroll: true });
   };
