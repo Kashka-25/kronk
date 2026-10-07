@@ -1579,7 +1579,7 @@ function logoSection(id) {
     <div class="logo-actions"><h3>Logo</h3>
       <div class="nav"><label class="mini" for="logo-file">${n.logoSrc ? "Change logo" : "Upload a logo"}</label>${n.logoSrc ? `<button class="mini" type="button" id="logo-reset">Use the original</button>` : ""}</div>
       <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
-      <p class="note">Square images work best. It's cropped to a circle on the map.</p>
+      <p class="note">Use a square PNG or JPEG, ideally at least 512 × 512 pixels, so it stays sharp when people travel into your project. It's cropped to a circle on the map.</p>
       <p class="err" id="logo-err" hidden></p></div></section>`;
 }
 // Shrink any picture to a 192px square JPEG so it fits comfortably in the shared store.
@@ -1588,13 +1588,14 @@ function squareLogo(file) {
     if (!file || !/^image\//.test(file.type)) return reject({ code: "type" });
     const url = URL.createObjectURL(file), img = new Image();
     img.onload = () => {
-      const S2 = 192, c = document.createElement("canvas"); c.width = c.height = S2;
+      // kept at 512px so it stays crisp as the portal fills the screen (smaller uploads are not enlarged)
+      const S2 = Math.min(512, Math.max(192, Math.min(img.naturalWidth, img.naturalHeight))), c = document.createElement("canvas"); c.width = c.height = S2;
       const x = c.getContext("2d"); x.fillStyle = "#FFFFFF"; x.fillRect(0, 0, S2, S2);
       const s = Math.min(img.naturalWidth, img.naturalHeight);
       x.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, S2, S2);
       URL.revokeObjectURL(url);
       let q = 0.86, out = c.toDataURL("image/jpeg", q);
-      while (out.length > 60000 && q > 0.4) { q -= 0.12; out = c.toDataURL("image/jpeg", q); }
+      while (out.length > 150000 && q > 0.4) { q -= 0.12; out = c.toDataURL("image/jpeg", q); }
       resolve(out);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject({ code: "type" }); };
