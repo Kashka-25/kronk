@@ -27,6 +27,9 @@ Source: [`Kashka-25/free-the-dream-map`](https://github.com/Kashka-25/free-the-d
 - **Suggest a project.** "Who is it for?" first, then four questions: name,
   what it is, how the community can get involved, and (optionally) what it's
   connected to.
+- **Suggestions.** Its own page (and top-bar button) listing every idea
+  waiting for review, most-followed first. Anyone can follow a suggestion they
+  like; admins see who follows each one when they review it.
 - **Running a project.** Whoever runs it fills in its tagline, about, how to
   get involved, why it matters, reflections, open questions and logo, in
   place.
