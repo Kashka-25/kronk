@@ -123,6 +123,54 @@ Title`, `[4:00] Title` or just `Title`. The API takes that text as
   `tracklist_text` (for the edit form).
 - Track names aren't in the search index yet.
 
+## Live sets
+
+Musicians can play to members in real time: DJ sets, gigs, online
+concerts. Built 2026-10-13 on the Jitsi server Huddle already uses
+(`JITSI_DOMAIN`, see `docs/spaces/huddle.md`), so it needs no new
+infrastructure. A dedicated stream server (Owncast, Icecast) would carry
+more listeners at higher quality, but needs hosting and OBS-style
+software for every artist; it stays an option if rooms outgrow Jitsi.
+
+- **`BoothLive`** (`app/models/booth_live.rb`, table `booth_lives`):
+  `title`, `description`, `genres`, `starts_at`, `started_at`,
+  `ended_at`, `room_key` (the Jitsi room, `booth-` plus random hex) and
+  `status_id` (the latest feed post about it). The state is derived:
+  **scheduled** until the host goes live, **live** until they end it,
+  then **ended**. A set nobody ended counts as ended 12 hours after it
+  started, and one that never started drops off the list 6 hours after
+  its start time (`STALE_AFTER`, `MISSED_AFTER`), so a closed tab can't
+  leave a ghost "live now". Nothing of the performance is stored.
+- **API** (`Api::V1::BoothLivesController`, members only because the
+  room key is the way in): `index` (live, then upcoming soonest first),
+  `show`, `create` (no `starts_at` means now), `update`, `destroy` (not
+  while live), `start`, `finish` and `share` (a plain post linking to the
+  room at a reach-ladder `visibility`: "Live now…" once live, "Playing
+  live in the Booth soon…" before). The room page shows the start time
+  in each reader's own time zone, so the post doesn't print one.
+- **Going live.** The Ж menu's **Upload or go live** opens the composer,
+  which switches between Upload a set and **Go live**
+  (`/hub/booth/composer/live`, `components/live_composer.tsx`). **Now**
+  opens the room with the host's get-ready panel (input, screen-share
+  audio, headphones, recording, room size); the set is only live once
+  they press **Go live** there. **Later** schedules it, and can tell the
+  feed at once. Tell my feed is on by default with a reach picker.
+- **The room** (`/hub/booth/live/:id`, `components/live_room.tsx`, on
+  `<KornerDetail>`). The host joins with Jitsi's pre-join screen (to pick
+  their mixer or interface), camera off, and audio processing off: no
+  echo cancelling, noise suppression, gain control or high-pass filter,
+  and stereo Opus at 510 kbps, so music isn't treated as speech.
+  Listeners tap **Listen in** (browsers only play sound after a tap) and
+  join muted with a cut-down toolbar: chat, raise hand, reactions, tile
+  view, full screen and leave. The page polls the set every 20 seconds,
+  so Listen in appears when the host goes live, and asks the Jitsi
+  server who's in the room every 15 seconds, as Huddle's lobby does
+  ("N in the room"). **End set** asks first; the ended page offers the
+  host **Upload the recording**.
+- **Where it shows.** A **Live** view between Musik and Artists (manifest
+  `views:`), with Live now and Coming up (`components/live_view.tsx`), and
+  a **Live now** strip at the top of Musik while anything is live.
+
 ## Feed projection and reactions
 
 Every member can find a published set in the Booth. Feeds are separate:
@@ -164,7 +212,15 @@ subject to the Mates gate.
   member. Decide whether sets should follow the reach ladder like other
   korners.
 - **Engagement ideas not built:** a personal library or saved sets, and a
-  live "N listening now" count on the set page.
+  "N listening now" count on a recorded set's page.
+- **Live sets: who can talk.** Listeners join muted with no mic button,
+  but without Jitsi tokens (see `docs/spaces/huddle.md`, Open) the Jitsi
+  server can't stop anyone unmuting. Tokens would make the host the only
+  one with a mic.
+- **Live sets: reach, reminders, Kalendar.** Every member can see and
+  join a live set, as with recorded sets. There are no reminders when a
+  scheduled set starts (a Nudge to people who asked), and no link from a
+  Kalendar event to a live set yet.
 - **Events.** Event-linked discovery (sets showing for people who RSVP'd)
   isn't built beyond the attachment link, and the set page doesn't show
   the Kalendar event that links to it: `<AttachmentSection>` reads only a

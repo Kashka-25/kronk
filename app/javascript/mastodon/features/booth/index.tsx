@@ -28,16 +28,21 @@ import { BoothComposer } from './components/booth_composer';
 import { BoothDock } from './components/booth_dock';
 import { BoothGridCard } from './components/booth_grid_card';
 import { EditForm } from './components/edit_form';
+import { LiveComposer } from './components/live_composer';
+import type { LiveCreated } from './components/live_composer';
+import { LiveNowStrip, LiveView } from './components/live_view';
 import { ShareForm } from './components/share_form';
 import type { BoothCredit, BoothSet } from './types';
 import { useBoothSets } from './use_booth_sets';
 
-// The Booth — Musik (every set, searchable by title, artist or genre)
+// The Booth — Musik (every set, searchable by title, artist or genre),
+// Live (sets played live on Huddle's Jitsi server, now and coming up)
 // and Artists (the people behind them). Both are views of the manifest
 // (`config/korners/booth.yaml`), routed by `<KornerShell>` from the URL
 // segment after `/hub/booth`; the Frame draws the title rotator.
 //
-// Uploading is the Ж menu's "Upload a set" (`/hub/booth/composer`); the
+// Uploading and going live are the Ж menu's "Upload or go live"
+// (`/hub/booth/composer`, `/composer/live` for Go live); the
 // how-it-works strip and the empty state point at it too, because a
 // musician arriving for the first time shouldn't have to find the Ж
 // before they know what the Booth is for.
@@ -79,7 +84,7 @@ const messages = defineMessages({
   introUpload: {
     id: 'booth.intro.upload',
     defaultMessage:
-      'Upload a set from the Ж menu: the audio file, a title and a cover. That’s all it needs.',
+      'Upload a set from the Ж menu (Upload or go live): the audio file, a title and a cover. That’s all it needs.',
   },
   introShare: {
     id: 'booth.intro.share',
@@ -90,6 +95,11 @@ const messages = defineMessages({
     id: 'booth.intro.credit',
     defaultMessage:
       'Credit who you played with. Once they confirm, the set shows under their name in Artists too.',
+  },
+  introLive: {
+    id: 'booth.intro.live',
+    defaultMessage:
+      'Play live: choose Go live in the same menu, now or at a time you set, and members listen in from Live.',
   },
   introDismiss: { id: 'booth.intro.dismiss', defaultMessage: 'Got it' },
 });
@@ -264,6 +274,7 @@ const BoothIntro: React.FC = () => {
         <li>{intl.formatMessage(messages.introUpload)}</li>
         <li>{intl.formatMessage(messages.introShare)}</li>
         <li>{intl.formatMessage(messages.introCredit)}</li>
+        <li>{intl.formatMessage(messages.introLive)}</li>
       </ol>
       <div className='booth-intro__actions'>
         <Link to='/hub/booth/composer' className='booth-intro__cta'>
@@ -323,6 +334,7 @@ const MusikView: React.FC = () => {
   return (
     <>
       <BoothIntro />
+      <LiveNowStrip />
 
       {!nothingAtAll && (
         <div className='booth-filters'>
@@ -508,6 +520,8 @@ const Booth: React.FC<{ multiColumn?: boolean }> = () => {
     signedIn &&
     (location.pathname.startsWith('/hub/booth/composer') ||
       location.pathname.startsWith('/hub/booth/new'));
+  const goingLive =
+    composing && location.pathname.startsWith('/hub/booth/composer/live');
 
   // A new set lands on its own page. If it went out to the feed, say so;
   // if not, the page offers to share it.
@@ -522,6 +536,15 @@ const Booth: React.FC<{ multiColumn?: boolean }> = () => {
     history.push('/hub/booth');
   }, [history]);
 
+  // A live set opens its room: the host's get-ready panel for "now", the
+  // scheduled page for "later".
+  const handleLiveCreated = useCallback(
+    ({ live, announce }: LiveCreated) => {
+      history.push(`/hub/booth/live/${live.id}`, { announce });
+    },
+    [history],
+  );
+
   return (
     <KornerShell
       slug='booth'
@@ -530,6 +553,7 @@ const Booth: React.FC<{ multiColumn?: boolean }> = () => {
       defaultView='musik'
       views={{
         musik: () => <MusikView />,
+        live: () => <LiveView />,
         artists: () => <ArtistsView />,
       }}
     >
@@ -538,7 +562,13 @@ const Booth: React.FC<{ multiColumn?: boolean }> = () => {
         <meta name='robots' content='noindex' />
       </Helmet>
 
-      {composing && (
+      {goingLive && (
+        <LiveComposer
+          onCreated={handleLiveCreated}
+          onCancel={handleCancelUpload}
+        />
+      )}
+      {composing && !goingLive && (
         <BoothComposer
           onCreated={handleCreated}
           onCancel={handleCancelUpload}
