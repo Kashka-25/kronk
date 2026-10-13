@@ -10,6 +10,7 @@ import type { BoothLive } from '../types';
 import { useBoothLives } from '../use_booth_lives';
 
 import { LiveRoom } from './live_room';
+import { RemindButton } from './remind_button';
 
 // The Live view (`/hub/booth/live`): what's on now and what's coming, and
 // one live set's room at `/hub/booth/live/:id`. `<LiveNowStrip>` is the
@@ -49,11 +50,14 @@ function liveIdFromPath(pathname: string): string | null {
 const hostName = (live: BoothLive) =>
   live.account.display_name || live.account.username;
 
-const LiveCard: React.FC<{ live: BoothLive }> = ({ live }) => {
+export const LiveCard: React.FC<{
+  live: BoothLive;
+  onChange?: (live: BoothLive) => void;
+}> = ({ live, onChange }) => {
   const intl = useIntl();
   const startsAt = new Date(live.starts_at);
   return (
-    <li>
+    <li className='booth-live-card-row'>
       <Link
         to={`/hub/booth/live/${live.id}`}
         className={`booth-live-card booth-live-card--${live.state}`}
@@ -94,6 +98,7 @@ const LiveCard: React.FC<{ live: BoothLive }> = ({ live }) => {
           </span>
         )}
       </Link>
+      <RemindButton live={live} onChange={onChange} />
     </li>
   );
 };
@@ -102,7 +107,7 @@ export const LiveView: React.FC = () => {
   const intl = useIntl();
   const location = useLocation<LocationState | undefined>();
   const id = liveIdFromPath(location.pathname);
-  const { lives, loading } = useBoothLives();
+  const { lives, loading, replace } = useBoothLives();
 
   if (id) {
     return <LiveRoom id={id} announce={location.state?.announce ?? null} />;
@@ -149,7 +154,7 @@ export const LiveView: React.FC = () => {
           </h2>
           <ul>
             {upcoming.map((l) => (
-              <LiveCard key={l.id} live={l} />
+              <LiveCard key={l.id} live={l} onChange={replace} />
             ))}
           </ul>
         </section>

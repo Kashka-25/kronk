@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 
+import { defineMessages, useIntl } from 'react-intl';
+
 import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import PauseIcon from '@/material-icons/400-24px/pause-fill.svg?react';
 import PlayArrowIcon from '@/material-icons/400-24px/play_arrow-fill.svg?react';
@@ -26,8 +28,17 @@ function formatTime(seconds: number): string {
   return `${h > 0 ? `${h}:` : ''}${mm}:${String(s).padStart(2, '0')}`;
 }
 
+const messages = defineMessages({
+  playNext: { id: 'booth.dock.play_next', defaultMessage: 'Play next' },
+  upNext: { id: 'booth.dock.up_next', defaultMessage: 'Up next: {title}' },
+});
+
 export const BoothDock: React.FC = () => {
+  const intl = useIntl();
   const {
+    upNext,
+    autoNext,
+    setAutoNext,
     activeSet,
     playing,
     currentTime,
@@ -44,6 +55,12 @@ export const BoothDock: React.FC = () => {
   const handleForward = useCallback(() => {
     skip(15);
   }, [skip]);
+  const handleAutoNext = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAutoNext(e.target.checked);
+    },
+    [setAutoNext],
+  );
 
   if (!activeSet) return null;
 
@@ -114,6 +131,22 @@ export const BoothDock: React.FC = () => {
             onSeek={seekPct}
           />
           <span className='booth-dock__time'>{formatTime(total)}</span>
+        </div>
+
+        <div className='booth-dock__next'>
+          <label>
+            <input
+              type='checkbox'
+              checked={autoNext}
+              onChange={handleAutoNext}
+            />
+            {intl.formatMessage(messages.playNext)}
+          </label>
+          {autoNext && upNext && (
+            <span className='booth-dock__up-next'>
+              {intl.formatMessage(messages.upNext, { title: upNext.title })}
+            </span>
+          )}
         </div>
 
         <button

@@ -277,6 +277,7 @@ $booth-accent: var(--accent);
   }
 
   input,
+  select,
   textarea {
     background: $ui-base-color;
     border: 1px solid $ui-base-lighter-color;

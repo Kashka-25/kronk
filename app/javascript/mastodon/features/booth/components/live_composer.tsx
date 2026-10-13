@@ -190,7 +190,7 @@ export const LiveComposer: React.FC<Props> = ({ onCreated, onCancel }) => {
           />
         </label>
 
-        <fieldset className='booth-upload-form__field booth-live-when'>
+        <fieldset className='booth-live-when'>
           <legend>{intl.formatMessage(messages.when)}</legend>
           <label className='booth-upload-form__check'>
             <input

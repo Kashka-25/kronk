@@ -12,6 +12,7 @@ class BoothLive < ApplicationRecord
 
   belongs_to :account
   belongs_to :status, optional: true
+  has_many :reminders, class_name: 'BoothLiveReminder', inverse_of: :booth_live, dependent: :delete_all
 
   validates :title, presence: true, length: { maximum: 200 }
   validates :description, length: { maximum: 2000 }
@@ -48,8 +49,19 @@ class BoothLive < ApplicationRecord
     state == 'ended'
   end
 
+  # Going live tells everyone who asked to be reminded, once.
   def start!
-    update!(started_at: Time.current) if started_at.nil?
+    return if started_at.present?
+
+    update!(started_at: Time.current)
+    reminders.find_each do |reminder|
+      Kronk::KornerEvents.publish(
+        'booth.live.started',
+        actor_account_id: account_id,
+        recipient_account_id: reminder.account_id,
+        booth_live_id: id
+      )
+    end
   end
 
   def finish!

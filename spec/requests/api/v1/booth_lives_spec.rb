@@ -60,6 +60,29 @@ RSpec.describe 'API V1 Booth Lives' do
       expect(response).to have_http_status(403)
     end
 
+    it 'nudges whoever asked to be reminded when the host goes live, once', :aggregate_failures do
+      events = []
+      allow(Kronk::KornerEvents).to receive(:publish) { |name, **payload| events << [name, payload] }
+      host = Fabricate(:account)
+      booth_live = Fabricate(:booth_live, account: host)
+
+      post "/api/v1/booth_lives/#{booth_live.id}/remind", headers: headers
+      expect(response.parsed_body['reminded']).to be true
+
+      booth_live.start!
+      booth_live.start!
+
+      expect(events).to eq [['booth.live.started', { actor_account_id: host.id, recipient_account_id: user.account.id, booth_live_id: booth_live.id }]]
+    end
+
+    it 'does not remind you of your own set' do
+      booth_live = Fabricate(:booth_live, account: user.account)
+
+      post "/api/v1/booth_lives/#{booth_live.id}/remind", headers: headers
+
+      expect(response).to have_http_status(403)
+    end
+
     it 'starts now when no time is given' do
       post '/api/v1/booth_lives', headers: headers, params: { title: 'Right now' }
 

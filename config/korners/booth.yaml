@@ -45,6 +45,8 @@ emits:
   # The uploader credited a Kronk account as an artist on a set; Nudges
   # tells that person, who can confirm it or come off it.
   - booth.set.tagged
+  # A live set started; one per member who asked to be reminded.
+  - booth.live.started
 listens: []
 
 # Cross-korner attachments (docs/korners/adding_a_korner.md (Korner attachments)). Booth
@@ -104,6 +106,11 @@ views:
       tagline: 'Sets and mixes shared as living sound',
     }
   - { key: live, label: Live, tagline: 'Sets played live, now and coming up' }
+  - {
+      key: mine,
+      label: My sets,
+      tagline: 'Your sets, your live sets and what you saved',
+    }
   - { key: artists, label: Artists, tagline: 'The people behind the sound' }
 
 launch:

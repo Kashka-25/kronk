@@ -80,6 +80,48 @@ RSpec.describe 'API V1 Booth Sets' do
     end
   end
 
+  describe 'listening tools' do
+    let(:write_token)   { Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: 'read:statuses write:statuses') }
+    let(:write_headers) { { 'Authorization' => "Bearer #{write_token.token}" } }
+    let!(:short_mix)    { Fabricate(:booth_set, published: true, kind: 'mix', play_count: 50, duration_seconds: 600) }
+    let!(:long_podcast) { Fabricate(:booth_set, published: true, kind: 'podcast', play_count: 5, duration_seconds: 7200) }
+    let!(:my_draft)     { Fabricate(:booth_set, account: user.account, published: false, kind: 'track') }
+
+    def ids_for(params)
+      get '/api/v1/booth_sets', headers: write_headers, params: params
+      response.parsed_body.pluck('id')
+    end
+
+    it 'filters by kind and sorts the way the listener asks', :aggregate_failures do
+      expect(ids_for(kind: 'podcast')).to eq [long_podcast.id.to_s]
+      expect(ids_for(sort: 'plays')).to eq [short_mix, long_podcast].map { |s| s.id.to_s }
+      expect(ids_for(sort: 'longest')).to eq [long_podcast, short_mix].map { |s| s.id.to_s }
+      expect(ids_for(sort: 'plays', offset: 1)).to eq [long_podcast.id.to_s]
+    end
+
+    it 'rejects a kind it does not know' do
+      patch "/api/v1/booth_sets/#{my_draft.id}", headers: write_headers, params: { kind: 'symphony' }
+
+      expect(response).to have_http_status(422)
+    end
+
+    it 'lists your own sets, drafts included, under mine' do
+      expect(ids_for(mine: true)).to eq [my_draft.id.to_s]
+    end
+
+    it 'saves and unsaves a set, privately', :aggregate_failures do
+      post "/api/v1/booth_sets/#{long_podcast.id}/save", headers: write_headers
+      expect(response.parsed_body['saved']).to be true
+
+      expect(ids_for(saved: true)).to eq [long_podcast.id.to_s]
+      get '/api/v1/booth_sets', headers: write_headers
+      expect(response.parsed_body.to_h { |s| [s['id'], s['saved']] }).to include(long_podcast.id.to_s => true, short_mix.id.to_s => false)
+
+      delete "/api/v1/booth_sets/#{long_podcast.id}/save", headers: write_headers
+      expect(ids_for(saved: true)).to eq []
+    end
+  end
+
   describe 'POST /api/v1/booth_sets/:id/share' do
     let(:write_token)   { Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: 'read:statuses write:statuses') }
     let(:write_headers) { { 'Authorization' => "Bearer #{write_token.token}" } }

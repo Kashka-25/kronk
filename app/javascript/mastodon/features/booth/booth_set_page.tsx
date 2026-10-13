@@ -27,6 +27,8 @@ import { EditForm } from './components/edit_form';
 import { ShareForm } from './components/share_form';
 import { Tracklist } from './components/tracklist';
 import { formatDuration } from './format';
+import { kindMessage } from './kinds';
+import { toggleSave } from './save';
 import type { BoothSet } from './types';
 
 // A set's page, on the shared detail shell (`<KornerDetail>`): cover,
@@ -63,6 +65,8 @@ const messages = defineMessages({
   shareToFeed: { id: 'booth.share_to_feed', defaultMessage: 'Share to feed' },
   shared: { id: 'booth.shared', defaultMessage: 'Shared to your feed' },
   editSet: { id: 'booth.page_action.edit', defaultMessage: 'Edit set' },
+  save: { id: 'booth.save', defaultMessage: 'Save' },
+  saved: { id: 'booth.saved', defaultMessage: 'Saved' },
   draft: {
     id: 'booth.set_page.draft',
     defaultMessage: 'Only you can see this set',
@@ -157,6 +161,16 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
     !!set?.is_owner && !editing,
   );
 
+  const handleSave = useCallback(() => {
+    if (!set) return;
+    void toggleSave(set)
+      .then((updated) => {
+        setSet(updated);
+        return undefined;
+      })
+      .catch(() => undefined);
+  }, [set]);
+
   const handleCopyLink = useCallback(() => {
     if (!set) return;
     const url = `${window.location.origin}/booth/sets/${set.id}/embed`;
@@ -227,6 +241,7 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
         meta={
           <KornerMeta
             items={[
+              intl.formatMessage(kindMessage(set.kind)),
               set.genres.length > 0 && set.genres.join(', '),
               set.event_name &&
                 (set.event_date
@@ -250,6 +265,15 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
                 iconId='share'
                 label={intl.formatMessage(messages.shareToFeed)}
                 onClick={handleStartShare}
+              />
+            )}
+            {set.saved !== undefined && (
+              <KornerPill
+                label={intl.formatMessage(
+                  set.saved ? messages.saved : messages.save,
+                )}
+                active={set.saved}
+                onClick={handleSave}
               />
             )}
             <KornerPill

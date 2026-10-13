@@ -2,18 +2,25 @@ import { useCallback, useEffect, useState } from 'react';
 
 import api from 'mastodon/api';
 
-import type { BoothSet } from './types';
+import type { BoothKind, BoothSet } from './types';
 
-// Published sets, newest first, a page at a time
-// (`GET /api/v1/booth_sets`, PAGE_SIZE in the controller). `query`
-// matches title, credit line and genres; `genre` is one exact tag.
-// Changing either starts again from the first page.
+// Sets a page at a time (`GET /api/v1/booth_sets`, PAGE_SIZE in the
+// controller). `query` matches title, credit line and genres; `genre` and
+// `kind` are exact; `sort` is the listener's choice. `scope` picks whose
+// sets: everyone's published ones, your own (drafts included) or the ones
+// you saved. Changing any of these starts again from the first page.
+// Newest pages back from the last id; the other orders page by offset.
 
 const PAGE_SIZE = 40;
+
+export type BoothSort = 'newest' | 'plays' | 'longest';
 
 interface Filters {
   query?: string;
   genre?: string | null;
+  kind?: BoothKind | null;
+  sort?: BoothSort;
+  scope?: 'all' | 'mine' | 'saved';
 }
 
 export interface BoothSetsState {
@@ -29,6 +36,9 @@ export interface BoothSetsState {
 export function useBoothSets({
   query = '',
   genre = null,
+  kind = null,
+  sort = 'newest',
+  scope = 'all',
 }: Filters = {}): BoothSetsState {
   const [sets, setSets] = useState<BoothSet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,17 +46,22 @@ export function useBoothSets({
   const [hasMore, setHasMore] = useState(false);
 
   const fetchPage = useCallback(
-    (maxId?: string) =>
+    (after?: { maxId: string; offset: number }) =>
       api()
         .get<BoothSet[]>('/api/v1/booth_sets', {
           params: {
             q: query || undefined,
             genre: genre ?? undefined,
-            max_id: maxId,
+            kind: kind ?? undefined,
+            sort: sort === 'newest' ? undefined : sort,
+            mine: scope === 'mine' ? true : undefined,
+            saved: scope === 'saved' ? true : undefined,
+            max_id: sort === 'newest' ? after?.maxId : undefined,
+            offset: sort === 'newest' ? undefined : after?.offset,
           },
         })
         .then((res) => res.data),
-    [query, genre],
+    [query, genre, kind, sort, scope],
   );
 
   useEffect(() => {
@@ -68,10 +83,11 @@ export function useBoothSets({
   }, [fetchPage]);
 
   const lastId = sets.at(-1)?.id;
+  const count = sets.length;
   const loadMore = useCallback(() => {
     if (!lastId) return;
     setLoadingMore(true);
-    fetchPage(lastId)
+    fetchPage({ maxId: lastId, offset: count })
       .then((page) => {
         setSets((prev) => [...prev, ...page]);
         setHasMore(page.length === PAGE_SIZE);
@@ -80,7 +96,7 @@ export function useBoothSets({
       .catch(() => {
         setLoadingMore(false);
       });
-  }, [fetchPage, lastId]);
+  }, [fetchPage, lastId, count]);
 
   const replace = useCallback((updated: BoothSet) => {
     setSets((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));

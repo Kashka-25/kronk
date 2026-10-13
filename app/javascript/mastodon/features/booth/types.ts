@@ -12,6 +12,14 @@ export interface BoothArtistAccount {
   avatar: string;
 }
 
+// What a set is (`BoothSet::KINDS`).
+export type BoothKind =
+  | 'mix'
+  | 'live_recording'
+  | 'track'
+  | 'podcast'
+  | 'spoken_word';
+
 // Someone who made a set. The uploader is always first and always verified.
 // After them come the people they credited: a tagged Kronk account, which
 // is unverified until that person confirms it, or a plain name for someone
@@ -39,6 +47,9 @@ export interface BoothSet {
   audio_url: string | null;
   cover_url: string | null;
   published: boolean;
+  kind: BoothKind;
+  // Whether you kept it (My sets → Saved). Signed-in only.
+  saved?: boolean;
   tracklist?: BoothTrack[];
   tracklist_text?: string;
   is_owner?: boolean;
@@ -67,6 +78,8 @@ export interface BoothLive {
   started_at: string | null;
   ended_at: string | null;
   is_owner: boolean;
+  // Whether you asked for a Nudge when it starts.
+  reminded: boolean;
   account: {
     id: string;
     acct: string;

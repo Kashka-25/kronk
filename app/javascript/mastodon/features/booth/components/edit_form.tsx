@@ -11,6 +11,7 @@ import { CoverPositionEditor } from './cover_position_editor';
 import { CreditsField, creditsPayload } from './credits_field';
 import type { CreditDraft } from './credits_field';
 import { GenreTagInput } from './genre_tag_input';
+import { KindSelect } from './kind_select';
 
 const messages = defineMessages({
   title: { id: 'booth.upload.title', defaultMessage: 'Title' },
@@ -96,6 +97,7 @@ export const EditForm: React.FC<Props> = ({ set, onSuccess, onCancel }) => {
   const [eventName, setEventName] = useState(set.event_name ?? '');
   const [eventDate, setEventDate] = useState(set.event_date ?? '');
   const [genres, setGenres] = useState<string[]>(set.genres);
+  const [kind, setKind] = useState(set.kind);
   const [description, setDescription] = useState(set.description);
   const [tracklistText, setTracklistText] = useState(set.tracklist_text ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -175,6 +177,7 @@ export const EditForm: React.FC<Props> = ({ set, onSuccess, onCancel }) => {
           title,
           collaborators: creditsPayload(credits),
           genres,
+          kind,
           cover_offset_y: coverOffsetY,
           event_name: eventName,
           event_date: eventDate,
@@ -206,6 +209,7 @@ export const EditForm: React.FC<Props> = ({ set, onSuccess, onCancel }) => {
     eventName,
     eventDate,
     genres,
+    kind,
     description,
     tracklistText,
     coverFile,
@@ -242,6 +246,8 @@ export const EditForm: React.FC<Props> = ({ set, onSuccess, onCancel }) => {
         </label>
 
         <CreditsField value={credits} onChange={setCredits} disabled={saving} />
+
+        <KindSelect value={kind} onChange={setKind} disabled={saving} />
 
         <label className='booth-upload-form__field'>
           <span>{intl.formatMessage(messages.event)}</span>

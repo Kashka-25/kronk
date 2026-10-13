@@ -19,6 +19,7 @@ module Nudges
       'Listing' => '/hub/wachuneed/listings/%<id>s',
       'Question' => '/hub/kuestions/%<id>s',
       'BoothSet' => '/hub/booth/sets/%<id>s',
+      'BoothLive' => '/hub/booth/live/%<id>s',
       'Album' => '/hub/albutts/albums/%<id>s',
       'Freethedream::Project' => '/hub/freethedream/p/%<id>s',
     }.freeze

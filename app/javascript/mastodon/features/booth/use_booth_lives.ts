@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import api from 'mastodon/api';
 
@@ -9,7 +9,11 @@ import type { BoothLive } from './types';
 
 const REFRESH_MS = 60_000;
 
-export function useBoothLives(): { lives: BoothLive[]; loading: boolean } {
+export function useBoothLives(): {
+  lives: BoothLive[];
+  loading: boolean;
+  replace: (live: BoothLive) => void;
+} {
   const [lives, setLives] = useState<BoothLive[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,5 +38,9 @@ export function useBoothLives(): { lives: BoothLive[]; loading: boolean } {
     };
   }, []);
 
-  return { lives, loading };
+  const replace = useCallback((updated: BoothLive) => {
+    setLives((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+  }, []);
+
+  return { lives, loading, replace };
 }

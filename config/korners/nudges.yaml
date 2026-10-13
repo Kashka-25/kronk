@@ -190,6 +190,17 @@ listens:
     interaction: interactive
     cta_label: 'View set'
     cta_route: '/hub/booth/sets/{booth_set_id}'
+  # A live set you asked to be reminded about has started. You asked, and
+  # the host need not be a Mate, so directed.
+  - event: booth.live.started
+    source_korner: booth
+    verb: went_live
+    directed: true
+    source_type: BoothLive
+    source_id_key: booth_live_id
+    interaction: interactive
+    cta_label: 'Listen in'
+    cta_route: '/hub/booth/live/{booth_live_id}'
   # ── Own-content nudges (decisions.md 2026-08-12) ──────────────────
   # Something happened to YOUR post. One recipient — the author — so these are
   # Tier-1 DIRECTED: they fire regardless of Mate status, because a stranger

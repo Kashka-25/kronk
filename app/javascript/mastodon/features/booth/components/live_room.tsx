@@ -20,6 +20,8 @@ import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 import type { BoothLive } from '../types';
 
+import { RemindButton } from './remind_button';
+
 // A live set's room (docs/spaces/booth.md, Live sets), on Huddle's Jitsi
 // server. The host gets a get-ready panel, then joins with Jitsi's audio
 // processing off and stereo at a high bitrate, so music comes through as
@@ -477,6 +479,7 @@ export const LiveRoom: React.FC<Props> = ({ id, announce }) => {
                   disabled={!scriptReady}
                 />
               )}
+              <RemindButton live={live} onChange={setLive} />
               {!owner && joined && (
                 <KornerPill
                   label={intl.formatMessage(messages.leave)}
