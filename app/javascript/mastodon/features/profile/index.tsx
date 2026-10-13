@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { defineMessages, useIntl } from 'react-intl';
 
 import { Helmet } from 'react-helmet';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 
+import EditIcon from '@/material-icons/400-24px/edit.svg?react';
 import { fetchAccount, lookupAccount } from 'mastodon/actions/accounts';
 import { Column } from 'mastodon/components/column';
 import { ColumnBackButton } from 'mastodon/components/column_back_button';
@@ -17,6 +18,7 @@ import { ScopeTitle } from 'mastodon/components/scope_title';
 import AccountTimeline from 'mastodon/features/account_timeline';
 import { MatesFace } from 'mastodon/features/mates_tab';
 import { ProfileFace } from 'mastodon/features/profile_shelves';
+import { useRegisterPageAction } from 'mastodon/features/ui/components/page_action_context';
 import { me } from 'mastodon/initial_state';
 import { normalizeForLookup } from 'mastodon/reducers/accounts_map';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
@@ -55,6 +57,7 @@ const messages = defineMessages({
     id: 'profile_space.cycle',
     defaultMessage: 'Change what you see on this profile',
   },
+  edit: { id: 'profile_space.edit', defaultMessage: 'Edit profile' },
 });
 
 type Face = 'profile' | 'timeline' | 'mates';
@@ -114,6 +117,18 @@ const ProfileSpace: React.FC<{ multiColumn?: boolean }> = ({ multiColumn }) => {
 
   const face = faceFromPath(location.pathname);
 
+  // Editing your own profile: the block (cover, photo, name) and the
+  // Profile face below it (bio, answers, shelves) turn editable in place.
+  // Started from the Ж menu, like Edit on any other page; finished with
+  // Save on the face.
+  const isSelf = !!accountId && accountId === me;
+  const [editing, setEditing] = useState(false);
+
+  // Someone else's profile, or another face, is never being edited.
+  useEffect(() => {
+    if (!isSelf || face !== 'profile') setEditing(false);
+  }, [isSelf, face, accountId]);
+
   // Face links need the canonical acct. Before the lookup resolves we
   // only have whatever was in the URL, which is the same string.
   const handle = account?.acct ?? acct ?? '';
@@ -126,6 +141,24 @@ const ProfileSpace: React.FC<{ multiColumn?: boolean }> = ({ multiColumn }) => {
       history.push({ pathname: pathForFace(handle, next as Face) });
     },
     [history, handle],
+  );
+
+  const startEditing = useCallback(() => {
+    setEditing(true);
+  }, []);
+
+  // Only on your own Profile face, and only until you're editing: the way
+  // out is Save, on the page (Tal 2026-10-13). Timeline and Mates have
+  // nothing to edit, so no moon there.
+  useRegisterPageAction(
+    {
+      key: 'edit',
+      label: intl.formatMessage(messages.edit),
+      icon: EditIcon,
+      iconId: 'edit',
+    },
+    startEditing,
+    isSelf && !gated && face === 'profile' && !editing,
   );
 
   const faces: ScopeTitleFace[] = useMemo(
@@ -170,7 +203,13 @@ const ProfileSpace: React.FC<{ multiColumn?: boolean }> = ({ multiColumn }) => {
   } else if (face === 'mates') {
     body = <MatesFace acct={handle} />;
   } else {
-    body = <ProfileFace acct={handle} />;
+    body = (
+      <ProfileFace
+        acct={handle}
+        editing={editing}
+        onEditingChange={setEditing}
+      />
+    );
   }
 
   return (
@@ -182,7 +221,7 @@ const ProfileSpace: React.FC<{ multiColumn?: boolean }> = ({ multiColumn }) => {
       </Helmet>
 
       {accountId ? (
-        <ProfileBlock accountId={accountId} minimal={gated} />
+        <ProfileBlock accountId={accountId} minimal={gated} editing={editing} />
       ) : (
         <LoadingIndicator />
       )}
