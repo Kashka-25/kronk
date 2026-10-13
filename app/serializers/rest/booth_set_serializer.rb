@@ -9,12 +9,13 @@ class REST::BoothSetSerializer < ActiveModel::Serializer
   attributes :id, :title, :description, :artist_name, :event_name, :event_date,
              :genres, :duration_seconds, :play_count, :audio_url, :cover_url,
              :cover_offset_y, :published, :created_at, :updated_at,
-             :tracklist, :tracklist_text, :artists
+             :tracklist, :tracklist_text, :artists, :kind
 
   belongs_to :account, serializer: REST::AccountSerializer
 
   attribute :is_owner, if: :current_user?
   attribute :can_moderate, if: :current_user?
+  attribute :saved, if: :current_user?
 
   def id
     object.id.to_s
@@ -51,6 +52,13 @@ class REST::BoothSetSerializer < ActiveModel::Serializer
     object.account_id == current_user.account.id
   end
   # rubocop:enable Naming/PredicatePrefix
+
+  # Whether the viewer kept this set. The index passes the ids it already
+  # looked up (`saved_ids`), so a page of sets is one query, not forty.
+  def saved
+    ids = instance_options[:saved_ids]
+    ids ? ids.include?(object.id) : object.saves.exists?(account_id: current_user.account_id)
+  end
 
   def can_moderate
     current_user.role&.can?(:manage_reports) || false

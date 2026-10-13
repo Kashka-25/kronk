@@ -4,8 +4,9 @@
 # when a musician goes live (docs/spaces/booth.md, Live sets), the way
 # Huddle::FomoNotifier tells people the Huddle is gathering. Skipped for the
 # host, anyone tuned out of the Booth and anyone who turned the row
-# (booth.went_live) off; push follows the row's Push switch and quiet hours
-# like any nudge (Nudges::PushWorker). When the set ends, `withdraw` takes
+# (booth.went_live) off, except people who tapped Remind me on this set:
+# they asked. Push follows the row's Push switch and quiet hours like any
+# nudge (Nudges::PushWorker). When the set ends, `withdraw` takes
 # its nudges back, so nobody is sent to a room that has closed.
 class Booth::LiveNotifier
   KORNER = 'booth'
@@ -32,14 +33,18 @@ class Booth::LiveNotifier
 
     User.confirmed.approved.enabled.account_not_suspended.includes(:account).find_each.filter_map do |user|
       next if user.account_id == @booth_live.account_id
-      next if tuned_out.include?(user.account_id)
+      next if tuned_out.include?(user.account_id) && !reminded.include?(user.account_id)
 
       user.account
     end
   end
 
+  def reminded
+    @reminded ||= @booth_live.reminders.pluck(:account_id).to_set
+  end
+
   def notify(account)
-    return if Nudges::MuteCatalogue.muted?(account, korner: KORNER, verb: VERB)
+    return if !reminded.include?(account.id) && Nudges::MuteCatalogue.muted?(account, korner: KORNER, verb: VERB)
 
     Nudges::Event.create!(
       actor_account: @booth_live.account,

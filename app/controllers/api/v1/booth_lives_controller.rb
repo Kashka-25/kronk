@@ -12,7 +12,9 @@ class Api::V1::BoothLivesController < Api::BaseController
   before_action :authorize_owner!, only: [:update, :destroy, :start, :finish, :share]
 
   def index
-    render json: BoothLive.includes(:account).listing, each_serializer: REST::BoothLiveSerializer
+    lives = BoothLive.includes(:account).listing
+    reminded = BoothLiveReminder.where(account: current_account, booth_live_id: lives.map(&:id)).pluck(:booth_live_id).to_set
+    render json: lives, each_serializer: REST::BoothLiveSerializer, reminded_ids: reminded
   end
 
   # What's live right now, for the home feed's banner. Nothing for someone
@@ -52,6 +54,20 @@ class Api::V1::BoothLivesController < Api::BaseController
     raise Mastodon::NotPermittedError if @booth_live.ended?
 
     @booth_live.start!
+    render json: @booth_live, serializer: REST::BoothLiveSerializer
+  end
+
+  # "Remind me": a Nudge when the host goes live. Only for a set that
+  # hasn't started, and not for your own.
+  def remind
+    raise Mastodon::NotPermittedError unless @booth_live.state == 'scheduled' && @booth_live.account_id != current_account.id
+
+    BoothLiveReminder.find_or_create_by!(account: current_account, booth_live: @booth_live)
+    render json: @booth_live, serializer: REST::BoothLiveSerializer
+  end
+
+  def unremind
+    BoothLiveReminder.where(account: current_account, booth_live: @booth_live).delete_all
     render json: @booth_live, serializer: REST::BoothLiveSerializer
   end
 

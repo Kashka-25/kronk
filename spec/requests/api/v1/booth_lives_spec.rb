@@ -91,6 +91,28 @@ RSpec.describe 'API V1 Booth Lives' do
       expect(response).to have_http_status(403)
     end
 
+    it 'nudges whoever asked to be reminded, even if they tuned out of the Booth', :aggregate_failures do
+      host = Fabricate(:user).account
+      booth_live = Fabricate(:booth_live, account: host)
+      KornerTuneOut.create!(account: user.account, korner_slug: 'booth', tuned_out_at: Time.current)
+
+      post "/api/v1/booth_lives/#{booth_live.id}/remind", headers: headers
+      expect(response.parsed_body['reminded']).to be true
+
+      booth_live.update!(started_at: Time.current)
+      Booth::LiveNotifier.new(booth_live).call
+
+      expect(Nudges::Event.addressed_to(user.account).where(source_korner_slug: 'booth', verb: 'went_live').count).to eq 1
+    end
+
+    it 'does not remind you of your own set' do
+      booth_live = Fabricate(:booth_live, account: user.account)
+
+      post "/api/v1/booth_lives/#{booth_live.id}/remind", headers: headers
+
+      expect(response).to have_http_status(403)
+    end
+
     it 'starts now when no time is given' do
       post '/api/v1/booth_lives', headers: headers, params: { title: 'Right now' }
 

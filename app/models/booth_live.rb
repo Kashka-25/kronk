@@ -12,6 +12,7 @@ class BoothLive < ApplicationRecord
 
   belongs_to :account
   belongs_to :status, optional: true
+  has_many :reminders, class_name: 'BoothLiveReminder', inverse_of: :booth_live, dependent: :delete_all
 
   validates :title, presence: true, length: { maximum: 200 }
   validates :description, length: { maximum: 2000 }
@@ -48,8 +49,9 @@ class BoothLive < ApplicationRecord
     state == 'ended'
   end
 
-  # Going live tells everyone tuned in to the Booth (Booth::LiveNotifier),
-  # once; ending takes those nudges back.
+  # Going live tells everyone tuned in to the Booth, and anyone who asked
+  # to be reminded (Booth::LiveNotifier), once; ending takes those nudges
+  # back.
   def start!
     return if started_at.present?
 

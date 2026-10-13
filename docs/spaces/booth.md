@@ -56,25 +56,32 @@ which opens the same form as the grid card's menu.
 
 ## Browsing and listening
 
-- **`/hub/booth`** sits on `<KornerShell>` with a title rotator over two
-  views (manifest `views:`):
-  - **Musik**: published sets, newest first, 40 at a time with **Load
-    more sets** (`max_id`). A search box matches title, credit line and
-    genres (`q`), and chips for the most used genres filter to one exact
-    tag (`genre`). A first-visit **How the Booth works** strip (upload,
+- **`/hub/booth`** sits on `<KornerShell>` with a title rotator over four
+  views (manifest `views:`): Musik, Live (see [Live sets](#live-sets)), My
+  sets and Artists.
+  - **Musik**: published sets, 40 at a time with **Load more sets**. A
+    search box matches title, credit line and genres (`q`); chips filter
+    to one **kind** (`kind`, see [Kinds](#kinds)) and to one of the most
+    used genres (`genre`). **Sort** is the listener's choice of Newest
+    (pages by `max_id`), Most played or Longest (page by `offset`); the
+    Booth never ranks for anyone. A first-visit **How the Booth works** strip (upload,
     get heard, credit who played) sits on top until dismissed; that is
     kept per browser in `localStorage` (`kronk.booth.intro_dismissed`).
     It and the empty state link to the composer, because a musician on
     their first visit hasn't found the Ж yet.
+  - **My sets** (`/hub/booth/mine`): a musician's own corner. Counts
+    (sets, plays, live sets coming, saved), their sets with drafts
+    included (`mine=true`), the live sets they've planned, and the sets
+    they've saved (`saved=true`).
   - **Artists**: a roster of people: everyone who uploaded one of the
     newest 40 sets or is credited on one, with `/hub/booth/artists/@<acct>`
     for one person's sets (or `/hub/booth/artists/<name>` for a credited
     name that is not an account). A line typed on a set from before
     credits existed is not an artist.
 - **Set page** at `/hub/booth/sets/:id` (`booth_set_page.tsx`), on
-  `<KornerDetail>`: cover, title, credit line, a facts line (genres,
-  event, length, plays), then **Share to feed** (owner) and **Copy player
-  link**, the player, who played, the notes and the track list. The player
+  `<KornerDetail>`: cover, title, credit line, a facts line (kind, genres,
+  event, length, plays), then **Share to feed** (owner), **Save** and
+  **Copy player link**, the player, who played, the notes and the track list. The player
   link is the embeddable player at `/booth/sets/:id/embed` (framable
   anywhere, but still sign-in only). Edit is the Ж menu's. The old set
   URLs `/booth/sets/:id` and `/booth/sets/:id/embed` are still served
@@ -99,6 +106,25 @@ which opens the same form as the grid card's menu.
 Code: `app/javascript/mastodon/features/booth/`,
 `app/controllers/api/v1/booth_sets_controller.rb`,
 `app/controllers/booth_controller.rb`.
+
+## Kinds
+
+`booth_sets.kind` is one of `mix`, `live_recording`, `track`, `podcast`
+or `spoken_word` (`BoothSet::KINDS`), chosen on the upload and edit forms
+("What kind is it?") and shown on cards and the set page. Sets from
+before kinds existed are mixes.
+
+## Saving and Play next
+
+- **Save** (the ♡ on a card, Save on a set page) keeps a set in My sets.
+  `booth_set_saves` holds one row per member and set; `POST` / `DELETE
+/api/v1/booth_sets/:id/save`. The serializer's `saved` is the viewer's
+  own; the index looks the page's saves up in one query (`saved_ids`).
+  Nobody else, the artist included, sees who saved what.
+- **Play next.** Pressing play on a card queues the grid it's in. When a
+  set ends, the player starts the next one if **Play next** (in the dock,
+  on by default, kept per browser as `kronk.booth.play_next`) is on, and
+  the dock shows what's up next.
 
 ## Track list
 
@@ -167,6 +193,11 @@ software for every artist; it stays an option if rooms outgrow Jitsi.
   server who's in the room every 15 seconds, as Huddle's lobby does
   ("N in the room"). **End set** asks first; the ended page offers the
   host **Upload the recording**.
+- **Remind me.** On a scheduled set someone else is playing, Remind me
+  (`booth_live_reminders`, `POST` / `DELETE /api/v1/booth_lives/:id/remind`)
+  asks for a Nudge. When the host goes live, `Booth::LiveNotifier` sends
+  them the same "{who} is live in the Booth now" nudge as everyone else,
+  even if they tuned out of the Booth or turned that row off: they asked.
 - **Where it shows.** A **Live** view between Musik and Artists (manifest
   `views:`), with Live now and Coming up (`components/live_view.tsx`), and
   a **Live now** strip at the top of Musik while anything is live.
@@ -218,24 +249,30 @@ subject to the Mates gate.
 
 ## Open
 
-- **Kinds.** Booth is meant to cover tracks, DJ sets, poetry, readings and
-  podcasts, but sets have no `kind` field. Only `genres`.
 - **Series.** A `BoothSeries` for podcasts and collections, with tune-in,
   was designed and never built. Undecided: whether tuning into a series
   reuses korner tune-in or gets its own table.
 - **Reach for sets themselves.** Every published set is visible to every
   member. Decide whether sets should follow the reach ladder like other
   korners.
-- **Engagement ideas not built:** a personal library or saved sets, and a
-  "N listening now" count on a recorded set's page.
+- **Engagement ideas not built:** a "N listening now" count on a recorded
+  set's page.
+- **Support the artist.** A link a musician adds (Ko-fi, Bandcamp,
+  PayPal.me or bank details as text), shown on their sets and live rooms,
+  with Kronk handling no money. Proposed in Kommons; My sets is where the
+  musician would set it.
 - **Live sets: who can talk.** Listeners join muted with no mic button,
   but without Jitsi tokens (see `docs/spaces/huddle.md`, Open) the Jitsi
   server can't stop anyone unmuting. Tokens would make the host the only
   one with a mic.
-- **Live sets: reach, reminders, Kalendar.** Every member can see and
-  join a live set, as with recorded sets. There are no reminders when a
-  scheduled set starts (a Nudge to people who asked), and no link from a
-  Kalendar event to a live set yet.
+- **Live sets: reach and Kalendar.** Every member can see and join a live
+  set, as with recorded sets. A Kalendar event can't link to a live set
+  yet: `korner_attachments` resolves a slug to one model (the manifest's
+  primary resource, `booth_sets`), so a `booth` target is always a
+  recorded set. Linking live sets means teaching the attachment primitive
+  a second Booth record type, a change to the shared system in its own
+  PR; an `event_id` column on `booth_lives` would go against
+  `docs/decisions.md` (2026-08-14).
 - **Live sets: telling everyone.** The banner and the "is live" nudge
   reach every member tuned in to the Booth by default, following Huddle's
   Fomo noto (agreed in Kommons for the Huddle). Whether the Booth should

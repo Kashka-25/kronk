@@ -123,6 +123,11 @@ views:
       tagline: 'Sets and mixes shared as living sound',
     }
   - { key: live, label: Live, tagline: 'Sets played live, now and coming up' }
+  - {
+      key: mine,
+      label: My sets,
+      tagline: 'Your sets, your live sets and what you saved',
+    }
   - { key: artists, label: Artists, tagline: 'The people behind the sound' }
 
 launch:

@@ -179,6 +179,9 @@ namespace :api, format: false do
         post :start
         post :finish
         post :share
+        # "Remind me" when a scheduled set goes live.
+        post :remind
+        delete :remind, action: :unremind
       end
     end
 
@@ -189,6 +192,9 @@ namespace :api, format: false do
         # The person tagged as an artist on a set: confirm it, or come off it.
         post :confirm_credit
         delete :credit, action: :remove_credit
+        # Keep a set in My sets → Saved.
+        post :save
+        delete :save, action: :unsave
       end
     end
 

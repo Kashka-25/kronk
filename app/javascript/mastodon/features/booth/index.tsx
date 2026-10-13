@@ -30,14 +30,18 @@ import { BoothGridCard } from './components/booth_grid_card';
 import { EditForm } from './components/edit_form';
 import { LiveComposer } from './components/live_composer';
 import type { LiveCreated } from './components/live_composer';
-import { LiveNowStrip, LiveView } from './components/live_view';
+import { LiveCard, LiveNowStrip, LiveView } from './components/live_view';
 import { ShareForm } from './components/share_form';
-import type { BoothCredit, BoothSet } from './types';
+import { KINDS, kindMessage } from './kinds';
+import type { BoothCredit, BoothKind, BoothSet } from './types';
+import { useBoothLives } from './use_booth_lives';
 import { useBoothSets } from './use_booth_sets';
+import type { BoothSort } from './use_booth_sets';
 
-// The Booth — Musik (every set, searchable by title, artist or genre),
-// Live (sets played live on Huddle's Jitsi server, now and coming up)
-// and Artists (the people behind them). Both are views of the manifest
+// The Booth — Musik (every set, searchable and sortable), Live (sets
+// played live on Huddle's Jitsi server, now and coming up), My sets (your
+// own sets, live sets and saved sets) and Artists (the people behind
+// them). Both are views of the manifest
 // (`config/korners/booth.yaml`), routed by `<KornerShell>` from the URL
 // segment after `/hub/booth`; the Frame draws the title rotator.
 //
@@ -69,7 +73,13 @@ const messages = defineMessages({
     defaultMessage: 'Search sets, artists or genres',
   },
   clearSearch: { id: 'booth.search_clear', defaultMessage: 'Clear search' },
-  allGenres: { id: 'booth.genre_all', defaultMessage: 'All' },
+  allGenres: { id: 'booth.genre_all', defaultMessage: 'All genres' },
+  allKinds: { id: 'booth.kind_all', defaultMessage: 'All kinds' },
+  kinds: { id: 'booth.kinds', defaultMessage: 'Kinds' },
+  sortLabel: { id: 'booth.sort', defaultMessage: 'Sort' },
+  sortNewest: { id: 'booth.sort.newest', defaultMessage: 'Newest' },
+  sortPlays: { id: 'booth.sort.plays', defaultMessage: 'Most played' },
+  sortLongest: { id: 'booth.sort.longest', defaultMessage: 'Longest' },
   genres: { id: 'booth.genres', defaultMessage: 'Genres' },
   loadMore: { id: 'booth.load_more', defaultMessage: 'Load more sets' },
   artistsEmpty: {
@@ -77,6 +87,37 @@ const messages = defineMessages({
     defaultMessage: 'No artists yet — publish a set to appear here.',
   },
   shared: { id: 'booth.shared', defaultMessage: 'Shared to your feed' },
+  goLive: { id: 'booth.live.go_live', defaultMessage: 'Go live' },
+  mineSets: { id: 'booth.mine.sets', defaultMessage: 'Sets' },
+  minePlays: { id: 'booth.mine.plays', defaultMessage: 'Plays' },
+  mineLives: { id: 'booth.mine.lives', defaultMessage: 'Live sets coming' },
+  mineSaved: { id: 'booth.mine.saved', defaultMessage: 'Saved' },
+  mineSetsHeading: {
+    id: 'booth.mine.sets_heading',
+    defaultMessage: 'Your sets',
+  },
+  mineSetsEmpty: {
+    id: 'booth.mine.sets_empty',
+    defaultMessage: 'You haven’t uploaded a set yet',
+  },
+  mineLivesHeading: {
+    id: 'booth.mine.lives_heading',
+    defaultMessage: 'Your live sets',
+  },
+  mineLivesEmpty: {
+    id: 'booth.mine.lives_empty',
+    defaultMessage: 'No live sets planned',
+  },
+  mineSavedHeading: { id: 'booth.mine.saved_heading', defaultMessage: 'Saved' },
+  mineSavedEmpty: {
+    id: 'booth.mine.saved_empty',
+    defaultMessage: 'Nothing saved yet',
+  },
+  mineSavedEmptyBody: {
+    id: 'booth.mine.saved_empty_body',
+    defaultMessage:
+      'Tap ♡ on any set to keep it here. Only you see what you save.',
+  },
   introTitle: {
     id: 'booth.intro.title',
     defaultMessage: 'How the Booth works',
@@ -181,7 +222,8 @@ function topGenres(sets: BoothSet[]): string[] {
 }
 
 // A grid of sets, with the owner's Edit / Share to feed flows from each
-// card's menu. Both views use it.
+// card's menu. Every view uses it. Pressing play on a card queues the
+// grid it's in, for Play next.
 const SetGallery: React.FC<{
   sets: BoothSet[];
   onReplace: (set: BoothSet) => void;
@@ -227,6 +269,8 @@ const SetGallery: React.FC<{
             onEdit={setEditingSet}
             onDelete={onRemove}
             onShare={setSharingSet}
+            onChange={onReplace}
+            queue={sets}
           />
         ))}
       </SpaceGrid>
@@ -297,10 +341,12 @@ const MusikView: React.FC = () => {
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState<string | null>(null);
+  const [kind, setKind] = useState<BoothKind | null>(null);
+  const [sort, setSort] = useState<BoothSort>('newest');
   const [genreChips, setGenreChips] = useState<string[]>([]);
   const { sets, loading, loadingMore, hasMore, loadMore, replace, remove } =
-    useBoothSets({ query, genre });
-  const filtering = query !== '' || genre !== null;
+    useBoothSets({ query, genre, kind, sort });
+  const filtering = query !== '' || genre !== null || kind !== null;
 
   // Typing settles for a moment before it searches.
   useEffect(() => {
@@ -327,6 +373,12 @@ const MusikView: React.FC = () => {
   }, []);
   const handleGenre = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     setGenre(e.currentTarget.dataset.genre ?? null);
+  }, []);
+  const handleKind = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    setKind((e.currentTarget.dataset.kind as BoothKind | undefined) ?? null);
+  }, []);
+  const handleSort = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSort(e.target.value as BoothSort);
   }, []);
 
   const nothingAtAll = !loading && !filtering && sets.length === 0;
@@ -356,6 +408,46 @@ const MusikView: React.FC = () => {
                 <Icon id='close' icon={CloseIcon} />
               </button>
             )}
+          </div>
+          <label className='booth-sort'>
+            <span>{intl.formatMessage(messages.sortLabel)}</span>
+            <select value={sort} onChange={handleSort}>
+              <option value='newest'>
+                {intl.formatMessage(messages.sortNewest)}
+              </option>
+              <option value='plays'>
+                {intl.formatMessage(messages.sortPlays)}
+              </option>
+              <option value='longest'>
+                {intl.formatMessage(messages.sortLongest)}
+              </option>
+            </select>
+          </label>
+          <div
+            className='booth-genres'
+            role='group'
+            aria-label={intl.formatMessage(messages.kinds)}
+          >
+            <button
+              type='button'
+              className='booth-genres__chip'
+              aria-pressed={kind === null}
+              onClick={handleKind}
+            >
+              {intl.formatMessage(messages.allKinds)}
+            </button>
+            {KINDS.map((k) => (
+              <button
+                key={k}
+                type='button'
+                className='booth-genres__chip'
+                aria-pressed={kind === k}
+                data-kind={k}
+                onClick={handleKind}
+              >
+                {intl.formatMessage(kindMessage(k))}
+              </button>
+            ))}
           </div>
           {genreChips.length > 1 && (
             <div
@@ -423,6 +515,120 @@ const MusikView: React.FC = () => {
         </KornerActionBar>
       )}
     </>
+  );
+};
+
+// My sets: a musician's own corner of the Booth. Their sets (drafts
+// included) with plays, the live sets they've planned, and the sets
+// they've saved. Saved is private to them.
+const MySetsView: React.FC = () => {
+  const intl = useIntl();
+  const mine = useBoothSets({ scope: 'mine' });
+  const saved = useBoothSets({ scope: 'saved' });
+  const { lives } = useBoothLives();
+  const myLives = lives.filter((l) => l.is_owner);
+  const plays = mine.sets.reduce((sum, s) => sum + s.play_count, 0);
+  const savedReplace = saved.replace;
+  const savedRemove = saved.remove;
+
+  // Unsaving from this list takes the set out of it.
+  const handleSavedChange = useCallback(
+    (set: BoothSet) => {
+      if (set.saved) savedReplace(set);
+      else savedRemove(set.id);
+    },
+    [savedReplace, savedRemove],
+  );
+
+  if (mine.loading || saved.loading) {
+    return <LoadingState label={intl.formatMessage(messages.loading)} />;
+  }
+
+  const count = (n: number, more: boolean) => (more ? `${n}+` : String(n));
+
+  return (
+    <div className='booth-mine'>
+      <dl className='booth-mine__stats'>
+        <div>
+          <dt>{intl.formatMessage(messages.mineSets)}</dt>
+          <dd>{count(mine.sets.length, mine.hasMore)}</dd>
+        </div>
+        <div>
+          <dt>{intl.formatMessage(messages.minePlays)}</dt>
+          <dd>{intl.formatNumber(plays)}</dd>
+        </div>
+        <div>
+          <dt>{intl.formatMessage(messages.mineLives)}</dt>
+          <dd>{myLives.length}</dd>
+        </div>
+        <div>
+          <dt>{intl.formatMessage(messages.mineSaved)}</dt>
+          <dd>{count(saved.sets.length, saved.hasMore)}</dd>
+        </div>
+      </dl>
+
+      <section>
+        <h2 className='booth-set__section-title'>
+          {intl.formatMessage(messages.mineSetsHeading)}
+        </h2>
+        {mine.sets.length > 0 ? (
+          <SetGallery
+            sets={mine.sets}
+            onReplace={mine.replace}
+            onRemove={mine.remove}
+          />
+        ) : (
+          <EmptyState
+            title={intl.formatMessage(messages.mineSetsEmpty)}
+            action={
+              <Link to='/hub/booth/composer'>
+                {intl.formatMessage(messages.upload)}
+              </Link>
+            }
+          />
+        )}
+      </section>
+
+      <section>
+        <h2 className='booth-set__section-title'>
+          {intl.formatMessage(messages.mineLivesHeading)}
+        </h2>
+        {myLives.length > 0 ? (
+          <ul className='booth-mine__lives'>
+            {myLives.map((l) => (
+              <LiveCard key={l.id} live={l} />
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            title={intl.formatMessage(messages.mineLivesEmpty)}
+            action={
+              <Link to='/hub/booth/composer/live'>
+                {intl.formatMessage(messages.goLive)}
+              </Link>
+            }
+          />
+        )}
+      </section>
+
+      <section>
+        <h2 className='booth-set__section-title'>
+          {intl.formatMessage(messages.mineSavedHeading)}
+        </h2>
+        {saved.sets.length > 0 ? (
+          <SetGallery
+            sets={saved.sets}
+            onReplace={handleSavedChange}
+            onRemove={savedRemove}
+          />
+        ) : (
+          <EmptyState
+            title={intl.formatMessage(messages.mineSavedEmpty)}
+            body={intl.formatMessage(messages.mineSavedEmptyBody)}
+          />
+        )}
+      </section>
+    </div>
   );
 };
 
@@ -554,6 +760,7 @@ const Booth: React.FC<{ multiColumn?: boolean }> = () => {
       views={{
         musik: () => <MusikView />,
         live: () => <LiveView />,
+        mine: () => <MySetsView />,
         artists: () => <ArtistsView />,
       }}
     >
