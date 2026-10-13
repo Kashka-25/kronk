@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_13_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1196,6 +1196,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_160000) do
     t.index ["on_date"], name: "index_kosmic_updates_on_on_date", unique: true
     t.index ["published_at"], name: "index_kosmic_updates_on_published_at", where: "(published_at IS NOT NULL)"
     t.index ["status_id"], name: "index_kosmic_updates_on_status_id", unique: true, where: "(status_id IS NOT NULL)"
+  end
+
+  create_table "krew_join_requests", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "krew_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_krew_join_requests_on_account_id"
+    t.index ["krew_id", "account_id"], name: "index_krew_join_requests_on_krew_id_and_account_id", unique: true
+    t.index ["krew_id"], name: "index_krew_join_requests_on_krew_id"
   end
 
   create_table "krew_korners", force: :cascade do |t|
@@ -2663,6 +2673,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_160000) do
   add_foreign_key "korner_content_views", "accounts", on_delete: :cascade
   add_foreign_key "korner_seen_markers", "accounts", on_delete: :cascade
   add_foreign_key "korner_tune_outs", "accounts", on_delete: :cascade
+  add_foreign_key "krew_join_requests", "accounts", on_delete: :cascade
+  add_foreign_key "krew_join_requests", "krews", on_delete: :cascade
   add_foreign_key "krew_korners", "krews", on_delete: :cascade
   add_foreign_key "krew_memberships", "accounts", on_delete: :cascade
   add_foreign_key "krew_memberships", "events", column: "rsvp_event_id", on_delete: :nullify
