@@ -53,3 +53,25 @@ export interface BoothSet {
   created_at: string;
   updated_at: string;
 }
+
+// A live set (docs/spaces/booth.md, Live sets). `room_key` is the Jitsi
+// room on Huddle's server.
+export interface BoothLive {
+  id: string;
+  title: string;
+  description: string;
+  genres: string[];
+  state: 'scheduled' | 'live' | 'ended';
+  room_key: string;
+  starts_at: string;
+  started_at: string | null;
+  ended_at: string | null;
+  is_owner: boolean;
+  account: {
+    id: string;
+    acct: string;
+    username: string;
+    display_name: string;
+    avatar: string;
+  };
+}

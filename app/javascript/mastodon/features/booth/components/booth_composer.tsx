@@ -13,6 +13,7 @@ import { useAppDispatch } from 'mastodon/store';
 
 import type { BoothSet } from '../types';
 
+import { ComposerSwitch } from './composer_switch';
 import { CreditsField, creditsPayload } from './credits_field';
 import type { CreditDraft } from './credits_field';
 import { GenreTagInput } from './genre_tag_input';
@@ -450,6 +451,7 @@ export const BoothComposer: React.FC<Props> = ({ onCancel, onCreated }) => {
     <ComposeShell
       korner='booth'
       label={intl.formatMessage(messages.shellLabel)}
+      switcher={<ComposerSwitch mode='upload' />}
       submitLabel={intl.formatMessage(messages.submit)}
       submittingLabel={intl.formatMessage(messages.submitting)}
       submitting={submitting}

@@ -163,6 +163,15 @@ namespace :api, format: false do
       resource :observation, only: [:show]
     end
 
+    # Live sets: go live, end, and tell your feed (docs/spaces/booth.md).
+    resources :booth_lives, only: [:index, :show, :create, :update, :destroy] do
+      member do
+        post :start
+        post :finish
+        post :share
+      end
+    end
+
     resources :booth_sets, only: [:index, :show, :create, :update, :destroy] do
       member do
         post :play
