@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { defineMessages, useIntl } from 'react-intl';
+import type { MessageDescriptor } from 'react-intl';
 
+import classNames from 'classnames';
 import { Helmet } from 'react-helmet';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 
@@ -76,6 +78,10 @@ const messages = defineMessages({
   allGenres: { id: 'booth.genre_all', defaultMessage: 'All genres' },
   allKinds: { id: 'booth.kind_all', defaultMessage: 'All kinds' },
   kindLabel: { id: 'booth.filter.kind', defaultMessage: 'Kind' },
+  sortChosen: {
+    id: 'booth.filter.sort_chosen',
+    defaultMessage: 'Sort: {sort}',
+  },
   kindChosen: {
     id: 'booth.filter.kind_chosen',
     defaultMessage: 'Kind: {kind}',
@@ -168,6 +174,15 @@ const messages = defineMessages({
 
 const INTRO_KEY = 'kronk.booth.intro_dismissed';
 const GENRE_CHIPS = 8;
+type FilterKey = 'sort' | 'kind' | 'genre';
+
+const SORTS: readonly BoothSort[] = ['newest', 'fewest', 'longest'];
+const SORT_MESSAGES: Record<BoothSort, MessageDescriptor> = {
+  newest: messages.sortNewest,
+  fewest: messages.sortFewest,
+  longest: messages.sortLongest,
+};
+
 // How many First listens show up front before "See all".
 const FIRST_SHELF = 4;
 
@@ -404,8 +419,16 @@ const MusikView: React.FC = () => {
   const handleKind = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     setKind((e.currentTarget.dataset.kind as BoothKind | undefined) ?? null);
   }, []);
-  const handleSort = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSort(e.target.value as BoothSort);
+  const handleSort = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    setSort(
+      (e.currentTarget.dataset.sort as BoothSort | undefined) ?? 'newest',
+    );
+  }, []);
+  // One filter panel open at a time; tapping its pill again closes it.
+  const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
+  const handleToggle = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    const key = e.currentTarget.dataset.filter as FilterKey;
+    setOpenFilter((open) => (open === key ? null : key));
   }, []);
   const handleAllFirst = useCallback(() => {
     setAllFirst(true);
@@ -480,65 +503,114 @@ const MusikView: React.FC = () => {
               </button>
             )}
           </div>
-          <label className='booth-sort'>
-            <span>{intl.formatMessage(messages.sortLabel)}</span>
-            <select value={sort} onChange={handleSort}>
-              <option value='newest'>
-                {intl.formatMessage(messages.sortNewest)}
-              </option>
-              <option value='fewest'>
-                {intl.formatMessage(messages.sortFewest)}
-              </option>
-              <option value='longest'>
-                {intl.formatMessage(messages.sortLongest)}
-              </option>
-            </select>
-          </label>
-          {/* Kind and Genre fold away (closed to start) so the grid comes
-              first; the summary names the choice while it's closed. */}
-          <details className='booth-filter'>
-            <summary>
-              {kind
-                ? intl.formatMessage(messages.kindChosen, {
-                    kind: intl.formatMessage(kindMessage(kind)),
-                  })
-                : intl.formatMessage(messages.kindLabel)}
-            </summary>
-            <div
-              className='booth-genres'
-              role='group'
-              aria-label={intl.formatMessage(messages.kinds)}
-            >
+          {/* Sort, Kind and Genre on one line, closed to start so the
+              grid comes first. Each pill names its choice; opening one shows
+              its chips in a panel under the row, one at a time. */}
+          <div className='booth-filterbar'>
+            <div className='booth-filterbar__toggles'>
               <button
                 type='button'
-                className='booth-genres__chip'
-                aria-pressed={kind === null}
-                onClick={handleKind}
+                className={classNames('booth-filterbar__toggle', {
+                  'booth-filterbar__toggle--set': sort !== 'newest',
+                })}
+                aria-expanded={openFilter === 'sort'}
+                aria-controls='booth-filter-panel'
+                data-filter='sort'
+                onClick={handleToggle}
               >
-                {intl.formatMessage(messages.allKinds)}
+                {intl.formatMessage(messages.sortChosen, {
+                  sort: intl.formatMessage(SORT_MESSAGES[sort]),
+                })}
               </button>
-              {KINDS.map((k) => (
+              <button
+                type='button'
+                className={classNames('booth-filterbar__toggle', {
+                  'booth-filterbar__toggle--set': kind !== null,
+                })}
+                aria-expanded={openFilter === 'kind'}
+                aria-controls='booth-filter-panel'
+                data-filter='kind'
+                onClick={handleToggle}
+              >
+                {kind
+                  ? intl.formatMessage(messages.kindChosen, {
+                      kind: intl.formatMessage(kindMessage(kind)),
+                    })
+                  : intl.formatMessage(messages.kindLabel)}
+              </button>
+              {genreChips.length > 1 && (
                 <button
-                  key={k}
+                  type='button'
+                  className={classNames('booth-filterbar__toggle', {
+                    'booth-filterbar__toggle--set': genre !== null,
+                  })}
+                  aria-expanded={openFilter === 'genre'}
+                  aria-controls='booth-filter-panel'
+                  data-filter='genre'
+                  onClick={handleToggle}
+                >
+                  {genre
+                    ? intl.formatMessage(messages.genreChosen, { genre })
+                    : intl.formatMessage(messages.genreLabel)}
+                </button>
+              )}
+            </div>
+
+            {openFilter === 'sort' && (
+              <div
+                id='booth-filter-panel'
+                className='booth-genres'
+                role='group'
+                aria-label={intl.formatMessage(messages.sortLabel)}
+              >
+                {SORTS.map((s) => (
+                  <button
+                    key={s}
+                    type='button'
+                    className='booth-genres__chip'
+                    aria-pressed={sort === s}
+                    data-sort={s}
+                    onClick={handleSort}
+                  >
+                    {intl.formatMessage(SORT_MESSAGES[s])}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {openFilter === 'kind' && (
+              <div
+                id='booth-filter-panel'
+                className='booth-genres'
+                role='group'
+                aria-label={intl.formatMessage(messages.kinds)}
+              >
+                <button
                   type='button'
                   className='booth-genres__chip'
-                  aria-pressed={kind === k}
-                  data-kind={k}
+                  aria-pressed={kind === null}
                   onClick={handleKind}
                 >
-                  {intl.formatMessage(kindMessage(k))}
+                  {intl.formatMessage(messages.allKinds)}
                 </button>
-              ))}
-            </div>
-          </details>
-          {genreChips.length > 1 && (
-            <details className='booth-filter'>
-              <summary>
-                {genre
-                  ? intl.formatMessage(messages.genreChosen, { genre })
-                  : intl.formatMessage(messages.genreLabel)}
-              </summary>
+                {KINDS.map((k) => (
+                  <button
+                    key={k}
+                    type='button'
+                    className='booth-genres__chip'
+                    aria-pressed={kind === k}
+                    data-kind={k}
+                    onClick={handleKind}
+                  >
+                    {intl.formatMessage(kindMessage(k))}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {openFilter === 'genre' && genreChips.length > 1 && (
               <div
+                id='booth-filter-panel'
                 className='booth-genres'
                 role='group'
                 aria-label={intl.formatMessage(messages.genres)}
@@ -564,8 +636,8 @@ const MusikView: React.FC = () => {
                   </button>
                 ))}
               </div>
-            </details>
-          )}
+            )}
+          </div>
         </div>
       )}
 
