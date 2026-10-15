@@ -75,6 +75,16 @@ const messages = defineMessages({
   clearSearch: { id: 'booth.search_clear', defaultMessage: 'Clear search' },
   allGenres: { id: 'booth.genre_all', defaultMessage: 'All genres' },
   allKinds: { id: 'booth.kind_all', defaultMessage: 'All kinds' },
+  kindLabel: { id: 'booth.filter.kind', defaultMessage: 'Kind' },
+  kindChosen: {
+    id: 'booth.filter.kind_chosen',
+    defaultMessage: 'Kind: {kind}',
+  },
+  genreLabel: { id: 'booth.filter.genre', defaultMessage: 'Genre' },
+  genreChosen: {
+    id: 'booth.filter.genre_chosen',
+    defaultMessage: 'Genre: {genre}',
+  },
   kinds: { id: 'booth.kinds', defaultMessage: 'Kinds' },
   sortLabel: { id: 'booth.sort', defaultMessage: 'Sort' },
   firstListens: { id: 'booth.first_listens', defaultMessage: 'First listens' },
@@ -484,59 +494,77 @@ const MusikView: React.FC = () => {
               </option>
             </select>
           </label>
-          <div
-            className='booth-genres'
-            role='group'
-            aria-label={intl.formatMessage(messages.kinds)}
-          >
-            <button
-              type='button'
-              className='booth-genres__chip'
-              aria-pressed={kind === null}
-              onClick={handleKind}
-            >
-              {intl.formatMessage(messages.allKinds)}
-            </button>
-            {KINDS.map((k) => (
-              <button
-                key={k}
-                type='button'
-                className='booth-genres__chip'
-                aria-pressed={kind === k}
-                data-kind={k}
-                onClick={handleKind}
-              >
-                {intl.formatMessage(kindMessage(k))}
-              </button>
-            ))}
-          </div>
-          {genreChips.length > 1 && (
+          {/* Kind and Genre fold away (closed to start) so the grid comes
+              first; the summary names the choice while it's closed. */}
+          <details className='booth-filter'>
+            <summary>
+              {kind
+                ? intl.formatMessage(messages.kindChosen, {
+                    kind: intl.formatMessage(kindMessage(kind)),
+                  })
+                : intl.formatMessage(messages.kindLabel)}
+            </summary>
             <div
               className='booth-genres'
               role='group'
-              aria-label={intl.formatMessage(messages.genres)}
+              aria-label={intl.formatMessage(messages.kinds)}
             >
               <button
                 type='button'
                 className='booth-genres__chip'
-                aria-pressed={genre === null}
-                onClick={handleGenre}
+                aria-pressed={kind === null}
+                onClick={handleKind}
               >
-                {intl.formatMessage(messages.allGenres)}
+                {intl.formatMessage(messages.allKinds)}
               </button>
-              {genreChips.map((g) => (
+              {KINDS.map((k) => (
                 <button
-                  key={g}
+                  key={k}
                   type='button'
                   className='booth-genres__chip'
-                  aria-pressed={genre === g}
-                  data-genre={g}
-                  onClick={handleGenre}
+                  aria-pressed={kind === k}
+                  data-kind={k}
+                  onClick={handleKind}
                 >
-                  {g}
+                  {intl.formatMessage(kindMessage(k))}
                 </button>
               ))}
             </div>
+          </details>
+          {genreChips.length > 1 && (
+            <details className='booth-filter'>
+              <summary>
+                {genre
+                  ? intl.formatMessage(messages.genreChosen, { genre })
+                  : intl.formatMessage(messages.genreLabel)}
+              </summary>
+              <div
+                className='booth-genres'
+                role='group'
+                aria-label={intl.formatMessage(messages.genres)}
+              >
+                <button
+                  type='button'
+                  className='booth-genres__chip'
+                  aria-pressed={genre === null}
+                  onClick={handleGenre}
+                >
+                  {intl.formatMessage(messages.allGenres)}
+                </button>
+                {genreChips.map((g) => (
+                  <button
+                    key={g}
+                    type='button'
+                    className='booth-genres__chip'
+                    aria-pressed={genre === g}
+                    data-genre={g}
+                    onClick={handleGenre}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </details>
           )}
         </div>
       )}
