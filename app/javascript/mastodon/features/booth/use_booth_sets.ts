@@ -14,7 +14,7 @@ import type { BoothKind, BoothSet } from './types';
 
 const PAGE_SIZE = 40;
 
-export type BoothSort = 'newest' | 'plays' | 'longest';
+export type BoothSort = 'newest' | 'fewest' | 'longest';
 
 interface Filters {
   query?: string;

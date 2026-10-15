@@ -7,10 +7,11 @@ class Api::V1::BoothSetsController < Api::BaseController
   FIRST_LISTENS_WINDOW = 30.days
   FIRST_LISTENS_MAX_PLAYS = 10
   REACH = %w(public orbit mates self_only).freeze
-  # The order a listener picks in Musik. Never ranked for them.
+  # The order a listener picks in Musik. Never ranked for them, and no
+  # popularity order: Fewest listens lets them dig for new voices.
   SORTS = {
     'newest' => { id: :desc },
-    'plays' => { play_count: :desc, id: :desc },
+    'fewest' => { play_count: :asc, id: :desc },
     'longest' => Arel.sql('booth_sets.duration_seconds DESC NULLS LAST, booth_sets.id DESC'),
   }.freeze
 
