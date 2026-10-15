@@ -88,3 +88,19 @@ export interface BoothLive {
     avatar: string;
   };
 }
+
+// A listener's note on a set, optionally pinned to a moment in it.
+export interface BoothShoutout {
+  id: string;
+  body: string;
+  at_seconds: number | null;
+  created_at: string;
+  can_remove: boolean;
+  account: {
+    id: string;
+    username: string;
+    acct: string;
+    display_name: string;
+    avatar: string;
+  };
+}

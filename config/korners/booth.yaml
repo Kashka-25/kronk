@@ -47,6 +47,8 @@ emits:
   - booth.set.tagged
   # A live set started; one per member who asked to be reminded.
   - booth.live.started
+  # Someone left a shoutout on a set; Nudges tells the set's owner.
+  - booth.set.shouted
 listens: []
 
 # Cross-korner attachments (docs/korners/adding_a_korner.md (Korner attachments)). Booth

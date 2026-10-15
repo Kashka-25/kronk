@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
@@ -22,9 +22,12 @@ import { useRegisterPageAction } from 'mastodon/features/ui/components/page_acti
 import { me } from 'mastodon/initial_state';
 import { useAppDispatch } from 'mastodon/store';
 
+import { useBoothPlayback } from './booth_playback_context';
 import { AudioPlayer } from './components/audio_player';
+import type { PlayerMarker } from './components/audio_player';
 import { EditForm } from './components/edit_form';
 import { ShareForm } from './components/share_form';
+import { Shoutouts, useShoutouts } from './components/shoutouts';
 import { Tracklist } from './components/tracklist';
 import { formatDuration } from './format';
 import { kindMessage } from './kinds';
@@ -89,6 +92,32 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
   const [sharing, setSharing] = useState(false);
   const [offerShare, setOfferShare] = useState(
     location.state?.justUploaded === true,
+  );
+  const { shoutouts, setShoutouts } = useShoutouts(id);
+  const { playFrom } = useBoothPlayback();
+
+  // Shoutouts pinned to a moment become pins on the player.
+  const markers = useMemo<PlayerMarker[]>(
+    () =>
+      shoutouts.flatMap((s) =>
+        s.at_seconds === null
+          ? []
+          : [
+              {
+                id: s.id,
+                at: s.at_seconds,
+                label: `${s.account.display_name}: ${s.body}`,
+                avatar: s.account.avatar,
+              },
+            ],
+      ),
+    [shoutouts],
+  );
+  const handleMarker = useCallback(
+    (marker: PlayerMarker) => {
+      if (set) playFrom(set, marker.at);
+    },
+    [set, playFrom],
   );
 
   useEffect(() => {
@@ -285,7 +314,7 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
           </KornerActionBar>
         }
       >
-        <AudioPlayer set={set} />
+        <AudioPlayer set={set} markers={markers} onMarker={handleMarker} />
 
         {/* Who made it: the uploader, then everyone they credited. A
             tagged account is unverified until that person confirms it; a
@@ -337,6 +366,12 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
         )}
 
         <Tracklist set={set} />
+
+        <Shoutouts
+          set={set}
+          shoutouts={shoutouts}
+          setShoutouts={setShoutouts}
+        />
       </KornerDetail>
 
       {editing && (

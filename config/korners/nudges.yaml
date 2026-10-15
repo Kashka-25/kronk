@@ -190,6 +190,17 @@ listens:
     interaction: interactive
     cta_label: 'View set'
     cta_route: '/hub/booth/sets/{booth_set_id}'
+  # Someone left a shoutout on your set. About your work, and the listener
+  # need not be a Mate, so directed (like status.replied).
+  - event: booth.set.shouted
+    source_korner: booth
+    verb: shouted
+    directed: true
+    source_type: BoothSet
+    source_id_key: booth_set_id
+    interaction: interactive
+    cta_label: 'View set'
+    cta_route: '/hub/booth/sets/{booth_set_id}'
   # A live set you asked to be reminded about has started. You asked, and
   # the host need not be a Mate, so directed.
   - event: booth.live.started

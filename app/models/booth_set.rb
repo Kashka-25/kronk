@@ -36,6 +36,7 @@ class BoothSet < ApplicationRecord
   # Everyone credited besides the uploader, in the order the uploader gave.
   has_many :credits, -> { order(:position, :id) }, class_name: 'BoothSetArtist', inverse_of: :booth_set, dependent: :destroy
   has_many :saves, class_name: 'BoothSetSave', inverse_of: :booth_set, dependent: :delete_all
+  has_many :shoutouts, class_name: 'BoothShoutout', inverse_of: :booth_set, dependent: :delete_all
 
   # What a set is. Filterable in Musik; existing sets are mixes.
   KINDS = %w(mix live_recording track podcast spoken_word).freeze
