@@ -60,8 +60,10 @@ which opens the same form as the grid card's menu.
   views (manifest `views:`): Musik, Live (see [Live sets](#live-sets)), My
   sets and Artists.
   - **Musik**: published sets, 40 at a time with **Load more sets**. A
-    search box matches title, credit line and genres (`q`); **Kind** and **Genre** toggles (closed to start, naming
-    the choice while closed) hold chips that filter
+    search box matches title, credit line and genres (`q`). Under it, **Sort**, **Kind** and **Genre** sit on one
+    row of pills, closed to start; each names its choice ("Sort: Newest",
+    "Kind: Podcast") and opens its chips in one panel under the row, one at a
+    time. The chips filter
     to one **kind** (`kind`, see [Kinds](#kinds)) and to one of the most
     used genres (`genre`). **Sort** is the listener's choice of Newest
     (pages by `max_id`), Fewest listens or Longest (page by `offset`); the

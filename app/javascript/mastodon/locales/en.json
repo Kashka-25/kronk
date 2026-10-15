@@ -475,6 +475,7 @@
   "booth.filter.genre_chosen": "Genre: {genre}",
   "booth.filter.kind": "Kind",
   "booth.filter.kind_chosen": "Kind: {kind}",
+  "booth.filter.sort_chosen": "Sort: {sort}",
   "booth.first_listens": "First listens",
   "booth.first_listens_all": "See all",
   "booth.first_listens_back": "Back to all sets",
