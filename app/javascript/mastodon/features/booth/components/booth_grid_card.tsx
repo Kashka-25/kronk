@@ -92,6 +92,8 @@ interface Props {
   queue?: BoothSet[];
   // The set after a save or unsave, so the list can update.
   onChange?: (set: BoothSet) => void;
+  // A label over the cover, e.g. "First listens".
+  badge?: string;
 }
 
 export const BoothGridCard: React.FC<Props> = ({
@@ -102,6 +104,7 @@ export const BoothGridCard: React.FC<Props> = ({
   onShare,
   queue,
   onChange,
+  badge,
 }) => {
   const intl = useIntl();
   const { play, toggle, activeSet, playing } = useBoothPlayback();
@@ -252,6 +255,7 @@ export const BoothGridCard: React.FC<Props> = ({
             ))}
           </span>
           {duration && <span className='booth-card__dur'>{duration}</span>}
+          {badge && <span className='booth-card__badge'>{badge}</span>}
           {set.saved !== undefined && (
             <button
               type='button'
@@ -282,13 +286,15 @@ export const BoothGridCard: React.FC<Props> = ({
               {set.event_name}
             </span>
           )}
-          <span className='booth-card__plays'>
-            <FormattedMessage
-              id='booth.plays'
-              defaultMessage='{count, plural, one {# play} other {# plays}}'
-              values={{ count: set.play_count }}
-            />
-          </span>
+          {set.play_count !== undefined && (
+            <span className='booth-card__plays'>
+              <FormattedMessage
+                id='booth.plays'
+                defaultMessage='{count, plural, one {# play} other {# plays}}'
+                values={{ count: set.play_count }}
+              />
+            </span>
+          )}
         </CardMeta>
 
         <button

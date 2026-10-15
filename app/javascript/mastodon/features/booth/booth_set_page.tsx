@@ -285,12 +285,14 @@ const BoothSetPage: React.FC<{ multiColumn: boolean }> = () => {
                   ? `${set.event_name}, ${new Date(set.event_date).toLocaleDateString()}`
                   : set.event_name),
               duration,
-              <FormattedMessage
-                key='plays'
-                id='booth.plays'
-                defaultMessage='{count, plural, one {# play} other {# plays}}'
-                values={{ count: set.play_count }}
-              />,
+              set.play_count !== undefined && (
+                <FormattedMessage
+                  key='plays'
+                  id='booth.plays'
+                  defaultMessage='{count, plural, one {# play} other {# plays}}'
+                  values={{ count: set.play_count }}
+                />
+              ),
             ]}
           />
         }
