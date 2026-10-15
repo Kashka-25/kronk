@@ -94,9 +94,9 @@ RSpec.describe 'API V1 Booth Sets' do
 
     it 'filters by kind and sorts the way the listener asks', :aggregate_failures do
       expect(ids_for(kind: 'podcast')).to eq [long_podcast.id.to_s]
-      expect(ids_for(sort: 'plays')).to eq [short_mix, long_podcast].map { |s| s.id.to_s }
+      expect(ids_for(sort: 'fewest')).to eq [long_podcast, short_mix].map { |s| s.id.to_s }
       expect(ids_for(sort: 'longest')).to eq [long_podcast, short_mix].map { |s| s.id.to_s }
-      expect(ids_for(sort: 'plays', offset: 1)).to eq [long_podcast.id.to_s]
+      expect(ids_for(sort: 'fewest', offset: 1)).to eq [short_mix.id.to_s]
     end
 
     it 'rejects a kind it does not know' do

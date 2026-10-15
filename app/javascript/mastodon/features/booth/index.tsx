@@ -89,7 +89,7 @@ const messages = defineMessages({
     defaultMessage: 'Back to all sets',
   },
   sortNewest: { id: 'booth.sort.newest', defaultMessage: 'Newest' },
-  sortPlays: { id: 'booth.sort.plays', defaultMessage: 'Most played' },
+  sortFewest: { id: 'booth.sort.fewest', defaultMessage: 'Fewest listens' },
   sortLongest: { id: 'booth.sort.longest', defaultMessage: 'Longest' },
   genres: { id: 'booth.genres', defaultMessage: 'Genres' },
   loadMore: { id: 'booth.load_more', defaultMessage: 'Load more sets' },
@@ -476,8 +476,8 @@ const MusikView: React.FC = () => {
               <option value='newest'>
                 {intl.formatMessage(messages.sortNewest)}
               </option>
-              <option value='plays'>
-                {intl.formatMessage(messages.sortPlays)}
+              <option value='fewest'>
+                {intl.formatMessage(messages.sortFewest)}
               </option>
               <option value='longest'>
                 {intl.formatMessage(messages.sortLongest)}

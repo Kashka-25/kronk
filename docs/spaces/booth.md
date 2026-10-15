@@ -63,7 +63,7 @@ which opens the same form as the grid card's menu.
     search box matches title, credit line and genres (`q`); chips filter
     to one **kind** (`kind`, see [Kinds](#kinds)) and to one of the most
     used genres (`genre`). **Sort** is the listener's choice of Newest
-    (pages by `max_id`), Most played or Longest (page by `offset`); the
+    (pages by `max_id`), Fewest listens or Longest (page by `offset`); the
     Booth never ranks for anyone. A first-visit **How the Booth works** strip (upload,
     get heard, credit who played) sits on top until dismissed; that is
     kept per browser in `localStorage` (`kronk.booth.intro_dismissed`).
@@ -117,9 +117,10 @@ The Booth lifts new voices instead of ranking popular ones (design brief,
 - **Plays are the artist's.** The serializer sends `play_count` only to
   the set's owner or a steward. Cards, set pages and the Artists roster
   show no play counts to anyone else; the roster sorts by set count, then
-  name. My sets still shows an artist their own plays. The listener's
-  **Most played** sort still orders by plays on the server without
-  showing the numbers.
+  name. My sets still shows an artist their own plays. There is no
+  popularity sort: the listener's **Fewest listens** sort (`fewest`)
+  orders by plays on the server, quietest first, without showing the
+  numbers, so digging for new voices is one tap away.
 
 ## Kinds
 
