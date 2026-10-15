@@ -43,7 +43,9 @@ export interface BoothSet {
   genres: string[];
   cover_offset_y: number | null;
   duration_seconds: number | null;
-  play_count: number;
+  // Only for the set's owner (or a steward): plays are for the artist,
+  // not a public chart.
+  play_count?: number;
   audio_url: string | null;
   cover_url: string | null;
   published: boolean;

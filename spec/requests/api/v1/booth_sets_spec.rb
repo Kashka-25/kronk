@@ -122,6 +122,31 @@ RSpec.describe 'API V1 Booth Sets' do
     end
   end
 
+  describe 'first listens' do
+    let(:read_headers) { headers }
+    let!(:fresh)       { Fabricate(:booth_set, published: true, play_count: 2) }
+    let!(:mine)        { Fabricate(:booth_set, account: user.account, published: true, play_count: 0) }
+
+    before do
+      Fabricate(:booth_set, published: true, play_count: 40)
+      Fabricate(:booth_set, published: true, play_count: 1, created_at: 2.months.ago)
+    end
+
+    it 'lists recent sets that have barely been heard, not your own' do
+      get '/api/v1/booth_sets', headers: read_headers, params: { first_listens: true }
+
+      expect(response.parsed_body.pluck('id')).to eq [fresh.id.to_s]
+    end
+
+    it 'shows play counts to the artist only', :aggregate_failures do
+      get '/api/v1/booth_sets', headers: read_headers
+
+      rows = response.parsed_body.index_by { |row| row['id'] }
+      expect(rows[fresh.id.to_s]).to_not have_key('play_count')
+      expect(rows[mine.id.to_s]['play_count']).to eq 0
+    end
+  end
+
   describe 'POST /api/v1/booth_sets/:id/share' do
     let(:write_token)   { Fabricate(:accessible_access_token, resource_owner_id: user.id, scopes: 'read:statuses write:statuses') }
     let(:write_headers) { { 'Authorization' => "Bearer #{write_token.token}" } }

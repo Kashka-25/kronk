@@ -2,6 +2,10 @@
 
 class Api::V1::BoothSetsController < Api::BaseController
   PAGE_SIZE = 40
+  # First listens: recent sets that have barely been heard yet, so new
+  # voices get a front-row spot instead of a chart.
+  FIRST_LISTENS_WINDOW = 30.days
+  FIRST_LISTENS_MAX_PLAYS = 10
   REACH = %w(public orbit mates self_only).freeze
   # The order a listener picks in Musik. Never ranked for them.
   SORTS = {
@@ -29,6 +33,7 @@ class Api::V1::BoothSetsController < Api::BaseController
     @booth_sets = page(@booth_sets)
     @booth_sets = @booth_sets.where('? = ANY (booth_sets.genres)', params[:genre].to_s) if params[:genre].present?
     @booth_sets = @booth_sets.where(kind: params[:kind].to_s) if params[:kind].present?
+    @booth_sets = first_listens(@booth_sets) if truthy?(params[:first_listens])
     @booth_sets = search(@booth_sets, params[:q]) if params[:q].present?
     render json: @booth_sets, each_serializer: REST::BoothSetSerializer, saved_ids: saved_ids(@booth_sets)
   end
@@ -139,6 +144,13 @@ class Api::V1::BoothSetsController < Api::BaseController
     else
       BoothSet.published
     end
+  end
+
+  # Published in the last month, under ten listens, and not your own (you
+  # can't give yourself a first listen).
+  def first_listens(scope)
+    scope = scope.where(created_at: FIRST_LISTENS_WINDOW.ago..).where(play_count: ...FIRST_LISTENS_MAX_PLAYS)
+    current_account ? scope.where.not(account_id: current_account.id) : scope
   end
 
   def sort_param

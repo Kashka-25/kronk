@@ -77,6 +77,17 @@ const messages = defineMessages({
   allKinds: { id: 'booth.kind_all', defaultMessage: 'All kinds' },
   kinds: { id: 'booth.kinds', defaultMessage: 'Kinds' },
   sortLabel: { id: 'booth.sort', defaultMessage: 'Sort' },
+  firstListens: { id: 'booth.first_listens', defaultMessage: 'First listens' },
+  firstListensBody: {
+    id: 'booth.first_listens_body',
+    defaultMessage:
+      'New this month and barely heard yet. Be one of the first to listen, and leave a shoutout.',
+  },
+  seeAll: { id: 'booth.first_listens_all', defaultMessage: 'See all' },
+  everything: {
+    id: 'booth.first_listens_back',
+    defaultMessage: 'Back to all sets',
+  },
   sortNewest: { id: 'booth.sort.newest', defaultMessage: 'Newest' },
   sortPlays: { id: 'booth.sort.plays', defaultMessage: 'Most played' },
   sortLongest: { id: 'booth.sort.longest', defaultMessage: 'Longest' },
@@ -147,6 +158,8 @@ const messages = defineMessages({
 
 const INTRO_KEY = 'kronk.booth.intro_dismissed';
 const GENRE_CHIPS = 8;
+// How many First listens show up front before "See all".
+const FIRST_SHELF = 4;
 
 function readIntroDismissed(): boolean {
   try {
@@ -175,11 +188,11 @@ const creditKey = (credit: BoothCredit): string =>
   credit.account ? `@${credit.account.acct}` : (credit.name ?? '').trim();
 
 // Group the loaded sets into an artist roster: one entry per person, with
-// set count + summed play count. A person is whoever uploaded a set or was
-// credited on one (Tal 2026-10-12): a Kronk account, or a plain name for
-// someone who is not on Kronk. The line an uploader typed on a set from
-// before credits existed is not an artist. Sorted by set count then plays,
-// both descending.
+// their set count. A person is whoever uploaded a set or was credited on
+// one (Tal 2026-10-12): a Kronk account, or a plain name for someone who is
+// not on Kronk. The line an uploader typed on a set from before credits
+// existed is not an artist. Sorted by set count, then name; never by
+// plays, which are the artist's own business.
 function deriveArtists(sets: BoothSet[]): BoothArtist[] {
   const byKey = new Map<string, BoothArtist>();
   for (const set of sets) {
@@ -189,7 +202,6 @@ function deriveArtists(sets: BoothSet[]): BoothArtist[] {
       const existing = byKey.get(key);
       if (existing) {
         existing.setCount += 1;
-        existing.totalPlays += set.play_count;
       } else {
         byKey.set(key, {
           key,
@@ -197,13 +209,12 @@ function deriveArtists(sets: BoothSet[]): BoothArtist[] {
           acct: credit.account?.acct,
           avatar: credit.account?.avatar,
           setCount: 1,
-          totalPlays: set.play_count,
         });
       }
     }
   }
   return [...byKey.values()].sort(
-    (a, b) => b.setCount - a.setCount || b.totalPlays - a.totalPlays,
+    (a, b) => b.setCount - a.setCount || a.name.localeCompare(b.name),
   );
 }
 
@@ -228,7 +239,8 @@ const SetGallery: React.FC<{
   sets: BoothSet[];
   onReplace: (set: BoothSet) => void;
   onRemove: (id: string) => void;
-}> = ({ sets, onReplace, onRemove }) => {
+  badge?: string;
+}> = ({ sets, onReplace, onRemove, badge }) => {
   const history = useHistory();
   const dispatch = useAppDispatch();
   const [editingSet, setEditingSet] = useState<BoothSet | null>(null);
@@ -271,6 +283,7 @@ const SetGallery: React.FC<{
             onShare={setSharingSet}
             onChange={onReplace}
             queue={sets}
+            badge={badge}
           />
         ))}
       </SpaceGrid>
@@ -344,9 +357,13 @@ const MusikView: React.FC = () => {
   const [kind, setKind] = useState<BoothKind | null>(null);
   const [sort, setSort] = useState<BoothSort>('newest');
   const [genreChips, setGenreChips] = useState<string[]>([]);
+  // "See all" on First listens turns the grid into that list.
+  const [allFirst, setAllFirst] = useState(false);
   const { sets, loading, loadingMore, hasMore, loadMore, replace, remove } =
-    useBoothSets({ query, genre, kind, sort });
-  const filtering = query !== '' || genre !== null || kind !== null;
+    useBoothSets({ query, genre, kind, sort, firstListens: allFirst });
+  const filtering = query !== '' || genre !== null || kind !== null || allFirst;
+  const first = useBoothSets({ firstListens: true });
+  const firstBadge = intl.formatMessage(messages.firstListens);
 
   // Typing settles for a moment before it searches.
   useEffect(() => {
@@ -380,6 +397,12 @@ const MusikView: React.FC = () => {
   const handleSort = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSort(e.target.value as BoothSort);
   }, []);
+  const handleAllFirst = useCallback(() => {
+    setAllFirst(true);
+  }, []);
+  const handleEverything = useCallback(() => {
+    setAllFirst(false);
+  }, []);
 
   const nothingAtAll = !loading && !filtering && sets.length === 0;
 
@@ -387,6 +410,44 @@ const MusikView: React.FC = () => {
     <>
       <BoothIntro />
       <LiveNowStrip />
+
+      {/* First listens: recent sets few people have heard yet, up front so
+          new voices get a first audience instead of a chart. */}
+      {!filtering && first.sets.length > 0 && (
+        <section className='booth-first'>
+          <div className='booth-first__head'>
+            <h2 className='booth-first__title'>
+              {intl.formatMessage(messages.firstListens)}
+            </h2>
+            <p>{intl.formatMessage(messages.firstListensBody)}</p>
+            {first.sets.length > FIRST_SHELF && (
+              <KornerPill
+                label={intl.formatMessage(messages.seeAll)}
+                onClick={handleAllFirst}
+              />
+            )}
+          </div>
+          <SetGallery
+            sets={first.sets.slice(0, FIRST_SHELF)}
+            onReplace={first.replace}
+            onRemove={first.remove}
+            badge={firstBadge}
+          />
+        </section>
+      )}
+
+      {allFirst && (
+        <div className='booth-first__head'>
+          <h2 className='booth-first__title'>
+            {intl.formatMessage(messages.firstListens)}
+          </h2>
+          <p>{intl.formatMessage(messages.firstListensBody)}</p>
+          <KornerPill
+            label={intl.formatMessage(messages.everything)}
+            onClick={handleEverything}
+          />
+        </div>
+      )}
 
       {!nothingAtAll && (
         <div className='booth-filters'>
@@ -502,7 +563,12 @@ const MusikView: React.FC = () => {
       )}
 
       {!loading && sets.length > 0 && (
-        <SetGallery sets={sets} onReplace={replace} onRemove={remove} />
+        <SetGallery
+          sets={sets}
+          onReplace={replace}
+          onRemove={remove}
+          badge={allFirst ? firstBadge : undefined}
+        />
       )}
 
       {!loading && hasMore && (
@@ -527,7 +593,7 @@ const MySetsView: React.FC = () => {
   const saved = useBoothSets({ scope: 'saved' });
   const { lives } = useBoothLives();
   const myLives = lives.filter((l) => l.is_owner);
-  const plays = mine.sets.reduce((sum, s) => sum + s.play_count, 0);
+  const plays = mine.sets.reduce((sum, s) => sum + (s.play_count ?? 0), 0);
   const savedReplace = saved.replace;
   const savedRemove = saved.remove;
 

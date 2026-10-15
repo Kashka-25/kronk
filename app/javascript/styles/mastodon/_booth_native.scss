@@ -1518,3 +1518,51 @@
     color: var(--warning-red);
   }
 }
+
+// ── first listens ───────────────────────────────────────────────────
+// Recent sets few people have heard yet, up front in Musik.
+.booth-first {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.75rem;
+  padding: 1rem 1.1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border-default));
+  border-radius: var(--radius-medium);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface-primary));
+}
+
+.booth-first__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.25rem;
+
+  p {
+    flex: 1 1 16rem;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+}
+
+.booth-first__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.booth-card__badge {
+  position: absolute;
+  bottom: 2.4rem;
+  left: 8px;
+  z-index: 1;
+  padding: 1px 8px;
+  border-radius: var(--radius-round);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}

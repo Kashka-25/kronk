@@ -104,6 +104,23 @@ Code: `app/javascript/mastodon/features/booth/`,
 `app/controllers/api/v1/booth_sets_controller.rb`,
 `app/controllers/booth_controller.rb`.
 
+## First listens and private plays
+
+The Booth lifts new voices instead of ranking popular ones (design brief,
+2026-10-15).
+
+- **First listens.** A shelf at the top of Musik for published sets from
+  the last 30 days with fewer than ten listens, newest first, never your
+  own (`first_listens=true`; `FIRST_LISTENS_WINDOW`,
+  `FIRST_LISTENS_MAX_PLAYS` in the controller). It shows four with a
+  "First listens" badge; **See all** turns the grid into the full list.
+- **Plays are the artist's.** The serializer sends `play_count` only to
+  the set's owner or a steward. Cards, set pages and the Artists roster
+  show no play counts to anyone else; the roster sorts by set count, then
+  name. My sets still shows an artist their own plays. The listener's
+  **Most played** sort still orders by plays on the server without
+  showing the numbers.
+
 ## Kinds
 
 `booth_sets.kind` is one of `mix`, `live_recording`, `track`, `podcast`

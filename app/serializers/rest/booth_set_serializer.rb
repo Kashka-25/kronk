@@ -7,7 +7,7 @@ class REST::BoothSetSerializer < ActiveModel::Serializer
   # → Booth link now lives on `korner_attachments`; clients that want
   # the linked event look it up via /api/v1/attachments?target=booth/<id>.
   attributes :id, :title, :description, :artist_name, :event_name, :event_date,
-             :genres, :duration_seconds, :play_count, :audio_url, :cover_url,
+             :genres, :duration_seconds, :audio_url, :cover_url,
              :cover_offset_y, :published, :created_at, :updated_at,
              :tracklist, :tracklist_text, :artists, :kind
 
@@ -16,6 +16,8 @@ class REST::BoothSetSerializer < ActiveModel::Serializer
   attribute :is_owner, if: :current_user?
   attribute :can_moderate, if: :current_user?
   attribute :saved, if: :current_user?
+  # Plays are for the artist (My sets), not a public chart.
+  attribute :play_count, if: :sees_plays?
 
   def id
     object.id.to_s
@@ -58,6 +60,10 @@ class REST::BoothSetSerializer < ActiveModel::Serializer
   def saved
     ids = instance_options[:saved_ids]
     ids ? ids.include?(object.id) : object.saves.exists?(account_id: current_user.account_id)
+  end
+
+  def sees_plays?
+    current_user? && (object.account_id == current_user.account_id || can_moderate)
   end
 
   def can_moderate

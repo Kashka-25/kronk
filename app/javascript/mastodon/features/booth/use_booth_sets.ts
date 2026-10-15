@@ -8,7 +8,8 @@ import type { BoothKind, BoothSet } from './types';
 // controller). `query` matches title, credit line and genres; `genre` and
 // `kind` are exact; `sort` is the listener's choice. `scope` picks whose
 // sets: everyone's published ones, your own (drafts included) or the ones
-// you saved. Changing any of these starts again from the first page.
+// you saved; `firstListens` narrows to recent sets with few listens.
+// Changing any of these starts again from the first page.
 // Newest pages back from the last id; the other orders page by offset.
 
 const PAGE_SIZE = 40;
@@ -21,6 +22,8 @@ interface Filters {
   kind?: BoothKind | null;
   sort?: BoothSort;
   scope?: 'all' | 'mine' | 'saved';
+  // Recent sets that have barely been heard yet, not your own.
+  firstListens?: boolean;
 }
 
 export interface BoothSetsState {
@@ -39,6 +42,7 @@ export function useBoothSets({
   kind = null,
   sort = 'newest',
   scope = 'all',
+  firstListens = false,
 }: Filters = {}): BoothSetsState {
   const [sets, setSets] = useState<BoothSet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,12 +60,13 @@ export function useBoothSets({
             sort: sort === 'newest' ? undefined : sort,
             mine: scope === 'mine' ? true : undefined,
             saved: scope === 'saved' ? true : undefined,
+            first_listens: firstListens ? true : undefined,
             max_id: sort === 'newest' ? after?.maxId : undefined,
             offset: sort === 'newest' ? undefined : after?.offset,
           },
         })
         .then((res) => res.data),
-    [query, genre, kind, sort, scope],
+    [query, genre, kind, sort, scope, firstListens],
   );
 
   useEffect(() => {
