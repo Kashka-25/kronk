@@ -126,6 +126,29 @@ before kinds existed are mixes.
   on by default, kept per browser as `kronk.booth.play_next`) is on, and
   the dock shows what's up next.
 
+## Shoutouts
+
+A listener's note on a set, optionally pinned to the moment they were
+hearing (`at_seconds`), like SoundCloud's timed comments. They're how the
+Booth tells an artist what landed, which a play count can't (the design
+brief behind this: lift new voices, feedback over metrics).
+
+- **`BoothShoutout`** (`booth_shoutouts`): `account`, `booth_set`, `body`
+  (up to 500 characters) and `at_seconds` (within the set's length when
+  it's known).
+- **API** (`Api::V1::BoothShoutoutsController`, members only):
+  `GET` / `POST /api/v1/booth_sets/:id/shoutouts` (newest first, up to 200) and `DELETE /api/v1/booth_shoutouts/:id`. Anyone who can see the
+  set can read and post; the author, the set's owner or a steward can
+  remove one (`can_remove`).
+- **On the set page** (`components/shoutouts.tsx`): a one-line composer
+  ("Shout out …"). While the set is playing, "at 12:34" pins it to the
+  current moment (on by default). Each shoutout shows its time as a chip
+  that plays from there, and pinned ones are avatar pins on the player's
+  progress bar (`AudioPlayer` `markers`).
+- **Nudge.** Posting publishes `booth.set.shouted` to the set's owner,
+  unless it's their own set, routed by Nudges as a directed nudge ("{who}
+  gave your set a shoutout", View set).
+
 ## Track list
 
 Added 2026-10-09 (Kommons proposal 116651831854514343). `booth_sets.tracklist`

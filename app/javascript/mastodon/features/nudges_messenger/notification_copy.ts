@@ -114,6 +114,10 @@ const sentences = defineMessages({
     id: 'nudges.notification.booth.tagged',
     defaultMessage: '{who} credited you as an artist on a set',
   },
+  boothShouted: {
+    id: 'nudges.notification.booth.shouted',
+    defaultMessage: '{who} gave your set a shoutout',
+  },
   boothWentLive: {
     id: 'nudges.notification.booth.went_live',
     defaultMessage: '{who} is live in the Booth now',
@@ -173,6 +177,7 @@ const SENTENCES: Record<string, MessageDescriptor | undefined> = {
   'kalendar.rsvpd_not_going': sentences.kalendarNotGoing,
   'booth.tagged': sentences.boothTagged,
   'booth.went_live': sentences.boothWentLive,
+  'booth.shouted': sentences.boothShouted,
   'map.challenged': sentences.mapChallenged,
   'rose.received': sentences.roseReceived,
   'huddle.gathering': sentences.huddleGathering,

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_23_200300) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_200400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -555,6 +555,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_200300) do
     t.index ["cover_attachment_id"], name: "index_booth_sets_on_cover_attachment_id"
     t.index ["shared_status_id"], name: "index_booth_sets_on_shared_status_id", unique: true
     t.index ["status_id"], name: "index_booth_sets_on_status_id", unique: true, where: "(status_id IS NOT NULL)"
+  end
+
+  create_table "booth_shoutouts", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.integer "at_seconds"
+    t.text "body", null: false
+    t.bigint "booth_set_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_booth_shoutouts_on_account_id"
+    t.index ["booth_set_id", "created_at"], name: "index_booth_shoutouts_on_booth_set_id_and_created_at"
+    t.index ["booth_set_id"], name: "index_booth_shoutouts_on_booth_set_id"
   end
 
   create_table "budget_items", force: :cascade do |t|
@@ -2773,6 +2785,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_200300) do
   add_foreign_key "booth_sets", "accounts", on_delete: :cascade
   add_foreign_key "booth_sets", "media_attachments", column: "audio_attachment_id", on_delete: :restrict
   add_foreign_key "booth_sets", "media_attachments", column: "cover_attachment_id", on_delete: :restrict
+  add_foreign_key "booth_shoutouts", "accounts", on_delete: :cascade
+  add_foreign_key "booth_shoutouts", "booth_sets", on_delete: :cascade
   add_foreign_key "budget_items", "proposals", on_delete: :cascade, validate: false
   add_foreign_key "bulk_import_rows", "bulk_imports", on_delete: :cascade
   add_foreign_key "bulk_imports", "accounts", on_delete: :cascade

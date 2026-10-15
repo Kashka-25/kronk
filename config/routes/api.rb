@@ -196,11 +196,15 @@ namespace :api, format: false do
         post :save
         delete :save, action: :unsave
       end
+
+      # Shoutouts: listeners' notes on a set, pinned to a moment or not.
+      resources :shoutouts, controller: 'booth_shoutouts', only: [:index, :create]
     end
 
     # Previews of links to things on Kronk, as the viewer sees them
     # (Kronk::LinkPreview).
     resources :link_previews, only: [:index]
+    resources :booth_shoutouts, only: [:destroy]
 
     # KornerAttachment REST surface (docs/korners/adding_a_korner.md (Korner attachments) §3.1).
     # Distinct from the proposal-nested `attachments` resource below — this

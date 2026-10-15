@@ -56,6 +56,8 @@ emits:
   # The uploader credited a Kronk account as an artist on a set; Nudges
   # tells that person, who can confirm it or come off it.
   - booth.set.tagged
+  # Someone left a shoutout on a set; Nudges tells the set's owner.
+  - booth.set.shouted
 listens: []
 
 # Cross-korner attachments (docs/korners/adding_a_korner.md (Korner attachments)). Booth
