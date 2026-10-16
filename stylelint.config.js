@@ -56,17 +56,13 @@ module.exports = {
       files: [
         // Frame / chrome / shared surfaces
         'app/javascript/styles/mastodon/_kronk_chrome.scss',
-        'app/javascript/styles/mastodon/_kronk_org_page.scss',
         'app/javascript/styles/mastodon/_kronk_search.scss',
         'app/javascript/styles/mastodon/_hub_page.scss',
-        'app/javascript/styles/mastodon/_nudges_activity.scss',
         'app/javascript/styles/mastodon/_nudges_messenger.scss',
         'app/javascript/styles/mastodon/_korner_stub.scss',
         'app/javascript/styles/mastodon/_you_portal.scss',
         'app/javascript/styles/mastodon/_compose_kronk.scss',
         'app/javascript/styles/mastodon/_kprofile.scss',
-        'app/javascript/styles/mastodon/_sectioned_profile.scss',
-        'app/javascript/styles/mastodon/_profile_nav.scss',
         'app/javascript/styles/mastodon/_profile_board.scss',
         // The rest of the profile, Nudges and settings partials, added
         // 2026-10-13. Still off the list, because each draws its own back
@@ -118,7 +114,6 @@ module.exports = {
         'app/javascript/styles/mastodon/_karporn.scss',
         'app/javascript/styles/mastodon/_booth_native.scss',
         'app/javascript/styles/mastodon/_huddle_rooms.scss',
-        'app/javascript/styles/mastodon/_korner_iframe.scss',
         'app/javascript/styles/mastodon/_klot.scss',
         'app/javascript/styles/mastodon/_kommons.scss',
         'app/javascript/styles/mastodon/_kommons_lattice.scss',
