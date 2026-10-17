@@ -90,6 +90,8 @@ interface AlbumLightboxModalProps {
   initialIndex: number;
   albumTitle: string;
   albumOwnerId: string;
+  // Who may set the cover: the owner, or any member for a Krew album.
+  albumCanManage?: boolean;
   // For the owner's "Use as album cover": which album, and which media
   // attachment is its chosen cover now (null: none chosen).
   albumId?: string;
@@ -104,6 +106,7 @@ export const AlbumLightboxModal: React.FC<AlbumLightboxModalProps> = ({
   initialIndex,
   albumTitle,
   albumOwnerId,
+  albumCanManage,
   albumId,
   coverMediaId,
   onAlbumChanged,
@@ -251,13 +254,14 @@ export const AlbumLightboxModal: React.FC<AlbumLightboxModalProps> = ({
   const mayCover =
     !!albumId &&
     accountId !== undefined &&
-    accountId === albumOwnerId &&
+    (albumCanManage ?? accountId === albumOwnerId) &&
     !!currentMediaId;
 
   // Edit lives in the Ж menu (docs/design.md). The photo's contributor edits
   // its caption: the caption is their post and shows under their name. The
-  // album's owner chooses the cover here too (Tal 2026-10-17: in Edit, not a
-  // moon of its own), so for them Edit opens even on someone else's photo.
+  // album's manager (its owner, or any member of a Krew album) chooses the
+  // cover here too (Tal 2026-10-17: in Edit, not a moon of its own), so for
+  // them Edit opens even on someone else's photo.
   // `overlay` lifts the menu above the modal; closing it hands the page's
   // own Edit back.
   useRegisterPageAction(
@@ -445,6 +449,7 @@ export const AlbumLightboxModalWrapper: React.FC<{
       initialIndex={initialIndex === -1 ? 0 : initialIndex}
       albumTitle={album.title}
       albumOwnerId={album.owner.id}
+      albumCanManage={album.can_manage}
       albumId={album.id}
       coverMediaId={album.cover_media_attachment_id}
       onAlbumChanged={onAlbumChanged}
