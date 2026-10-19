@@ -17,6 +17,16 @@ end state in the present tense and read as fact. Verify against code.
 
 ---
 
+## 2026-10-19 — Every 2.x release is "Rose"
+
+**Decided by Tal**, cutting 2.1.0: "We're keeping the name rose for all 2.0
+versions." A release name now belongs to a major. Minors keep it as patches
+do, so 2.1.0 ships as `2.1.0 "Rose"` and `RELEASE_NAME` in
+`lib/kronk/version.rb` stays until 3.0. This replaces the rule that minors
+earn a new name (CLAUDE.md, Versioning).
+
+---
+
 ## 2026-10-19 — Every composer saves drafts, on the server, as many as you like
 
 **Decided by Tal.** Every composer on Kronk saves what is being written as it
