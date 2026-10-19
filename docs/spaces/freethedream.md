@@ -133,14 +133,17 @@ taken on stay in the table as `idea` rows and don't show. Actualise items
 have no headcount: "2 set-up crew" is just a title.
 
 **Bringing: one tap for one thing, a number for many** (Tal, 2026-10-15,
-refined 2026-10-17). A need for one thing (_Gas bottle_, _Pots_) is one
-tap: **I'll bring it**, and **Bringing ✓** takes it back; bringing two is
-extra and great, with no need to say so. A need with an amount ("about 20
-plates", "5 kg rice", typed as `20 plates` when adding) asks **I'll bring
-some** and opens a small − 8 + stepper, so the row can say "12 coming ·
-Sam 8 · Jo 4". The amount is **rough, not a goal**: the row says "about
-20", and the thing counts as **sorted once about that many are coming**
-(`Item#sorted?`, `covered >= quantity`). Sorted things sink to the bottom
+refined 2026-10-17 to 19). A need for one thing (_Gas bottle_, _Pots_) is
+one tap: **I'll bring it**, and **Bringing ✓** takes it back; bringing two
+is extra and great, with no need to say so. A need with an amount ("2 gas
+bottles", "5 kg rice", typed as `2 gas bottles` when adding) asks **I'll
+bring some** and opens a small − 8 + stepper, so the row can say "12
+coming · Sam 8 · Jo 4". **More is welcome only where it is**: more is
+better at an event as a general idea, not a rule ("we don't need 20 gas
+bottles"), so whoever adds a need says. Typing `20+ plates`, or ticking
+**More is welcome** in the item composer, sets `more_welcome`, and the
+amount shows as **20+**; otherwise it shows as typed. The thing counts as
+**sorted once that many are coming** (`Item#sorted?`, `covered >= quantity`). Sorted things sink to the bottom
 of Thing Bringing, quieter, with a _Sorted_ tag; more is still welcome.
 `POST /items/:id/bring` takes `quantity` (0 takes it back). A comment on
 what you're bringing is for later.
@@ -227,8 +230,10 @@ chip goes to its gang.
   where power, lighting and water go (what several or all of its gangs
   use); then each gang, under its name.
 - **Coalescing a gang** takes its name, what it's about, its **first
-  fractals** and **what all of it needs**, one per line, so a gang is set
-  up in one step. A gang has no date. After adding, you stay where you
+  fractals** and **what all of it needs**, so a gang is set up in one
+  step. What it needs goes one thing to a box, like adding to Thing
+  Bringing (Tal, 2026-10-17): Enter goes to the next box, × takes one off,
+  and the amount shows beside its box ("2", or "20+" for `20+ plates`). A gang has no date. After adding, you stay where you
   were, ready to coalesce the next one. **Seeding an emergence** takes its
   first gangs and gear the same way; **adding a fractal**, its gear.
 - **Talk** (below).
@@ -251,6 +256,21 @@ Every emergence, gang and item has its own **threads**. A thread has
 replies under it, and replies can be answered in turn. Anyone in the
 emergence can **resolve** a thread once it's settled; resolved threads fold away under
 "3 resolved threads", and can be reopened.
+
+**Talk about a thing on the list** (Tal, 2026-10-18). Each row in Thing
+Bringing (and Still needed) has a speech-bubble button. It opens the talk
+of the gang or fractal the thing is in (`?quote=<item id>`) with a new
+thread quoting it: a card on the thread with its name, amount and how it's
+going ("8 coming of 20+", _Sorted_). The card links to the item. Taking
+the item off the list keeps the thread, without its card
+(`freethedream_comments.quoted_item_id`, nullified).
+
+**Tagging people** (Tal, 2026-10-18). Typing `@` in a talk box suggests
+people in the emergence (`GET /comments/mentionable?project_id=&q=`);
+picking one writes `@username`. Each person tagged who's in the emergence
+gets a Nudge, "tagged you in an emergence's talk", linking to the page
+(`freethedream.comment.mentioned`, directed). Tags show as links to the
+person. Tagging someone outside the emergence does nothing.
 
 Why threads that resolve, not messaging (Tal, 2026-10-13): people get
 overwhelmed by the volume of messages and stop engaging, and once 300

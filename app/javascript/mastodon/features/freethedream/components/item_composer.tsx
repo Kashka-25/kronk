@@ -72,6 +72,15 @@ const messages = defineMessages({
     defaultMessage: 'Not sure',
   },
   howMany: { id: 'freethedream.compose.how_many', defaultMessage: 'How many' },
+  moreWelcome: {
+    id: 'freethedream.compose.more_welcome',
+    defaultMessage: 'More is welcome',
+  },
+  moreWelcomeHint: {
+    id: 'freethedream.compose.more_welcome_hint',
+    defaultMessage:
+      'It shows as 20+. Leave it off for things like gas bottles.',
+  },
   unit: { id: 'freethedream.compose.unit', defaultMessage: 'Unit (optional)' },
   unitPlaceholder: {
     id: 'freethedream.compose.unit_placeholder',
@@ -131,6 +140,9 @@ export const ItemComposer: React.FC<Props> = ({
   );
   const [quantity, setQuantity] = useState(String(editing?.quantity ?? 1));
   const [unit, setUnit] = useState(editing?.unit ?? '');
+  const [moreWelcome, setMoreWelcome] = useState(
+    editing?.more_welcome ?? false,
+  );
   const [assets, setAssets] = useState<FtdAsset[]>([]);
   const [assetId, setAssetId] = useState('');
   const [busy, setBusy] = useState(false);
@@ -167,6 +179,12 @@ export const ItemComposer: React.FC<Props> = ({
     },
     [],
   );
+  const handleMoreWelcome = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setMoreWelcome(e.target.checked);
+    },
+    [],
+  );
   const handleUnit = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setUnit(e.target.value);
   }, []);
@@ -195,6 +213,7 @@ export const ItemComposer: React.FC<Props> = ({
       category: category || null,
       quantity: amount,
       unit: kind === 'job' ? '' : unit.trim(),
+      ...(kind === 'need' ? { more_welcome: moreWelcome } : {}),
     };
     const request = editing
       ? apiFtdUpdateItem(editing.id, params)
@@ -215,6 +234,7 @@ export const ItemComposer: React.FC<Props> = ({
     category,
     amount,
     unit,
+    moreWelcome,
     editing,
     kind,
     project,
@@ -341,6 +361,24 @@ export const ItemComposer: React.FC<Props> = ({
               />
             </label>
           </div>
+        )}
+        {/* More is better at an event for some things, not all (Tal,
+            2026-10-19): whoever adds a need says. */}
+        {kind === 'need' && (
+          <label className='freethedream-form__choice'>
+            <input
+              type='checkbox'
+              checked={moreWelcome}
+              onChange={handleMoreWelcome}
+            />
+            <span>
+              {intl.formatMessage(messages.moreWelcome)}
+              <span className='freethedream-form__hint'>
+                {' '}
+                {intl.formatMessage(messages.moreWelcomeHint)}
+              </span>
+            </span>
+          </label>
         )}
         {error && (
           <p className='freethedream__error' role='alert'>

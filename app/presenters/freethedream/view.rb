@@ -128,7 +128,7 @@ module Freethedream
         jobs: everything.select { |i| i.job_kind? && i.claims.any? { |c| c.account_id == me } }.map { |i| { id: i.id.to_s, title: i.title, section: where.call(i) } },
         bringing: everything.select(&:need_kind?).flat_map do |need|
           need.offers.select { |o| o.owner_id == me }.map do |o|
-            { id: need.id.to_s, title: need.title, quantity: o.quantity, unit: need.unit, about: need.quantity, section: where.call(need) }
+            { id: need.id.to_s, title: need.title, quantity: o.quantity, unit: need.unit, about: need.quantity, more_welcome: need.more_welcome, section: where.call(need) }
           end
         end,
         needed: needed.sort_by { |i| [i.created_at, i.id] }.first(MINE_NEEDED_MAX).map do |item|
@@ -308,6 +308,7 @@ module Freethedream
       case item.kind
       when 'need'
         covered = item.covered
+        row[:more_welcome] = item.more_welcome
         row[:covered] = covered
         row[:left] = [item.quantity - covered, 0].max
         row[:spare] = [covered - item.quantity, 0].max
@@ -355,13 +356,18 @@ module Freethedream
     # Threads, each with its replies nested under it. Resolved threads come
     # last.
     def comments(subject)
-      all = subject.comments.includes(:account, :resolved_by).oldest_first.to_a
+      all = subject.comments.includes(:account, :resolved_by, quoted_item: :offers).oldest_first.to_a
       by_parent = all.group_by(&:parent_id)
+      # Who's tagged anywhere in it, looked up once: @username => account.
+      names = all.flat_map(&:mentioned_usernames).uniq
+      tagged = all.empty? ? {} : all.first.mentioned_accounts(names).index_by { |a| a.username.downcase }
       build = lambda do |comment|
         {
           id: comment.id.to_s,
           account: account(comment.account),
           body: comment.body,
+          quoted_item: quoted(comment.quoted_item),
+          mentions: comment.mentioned_usernames.filter_map { |name| tagged[name] && account(tagged[name]).merge(username: name) },
           removed: comment.removed?,
           created_at: comment.created_at,
           mine: @viewer.present? && comment.account_id == @viewer.id,
@@ -371,6 +377,14 @@ module Freethedream
         }
       end
       (by_parent[nil] || []).partition { |c| !c.resolved? }.flatten.map { |thread| build.call(thread) }
+    end
+
+    # A thing on the list, as a card on a comment that quotes it.
+    def quoted(item)
+      return nil if item.nil?
+
+      row = { id: item.id.to_s, kind: item.kind, title: item.title, quantity: item.quantity, unit: item.unit }
+      item.need_kind? ? row.merge(covered: item.covered, more_welcome: item.more_welcome) : row
     end
 
     # A project's updates on their own, for its Activity to keep up with.

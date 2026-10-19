@@ -34,6 +34,7 @@ import {
   Section,
   categoryMessages,
   formatAmount,
+  formatNeed,
   kindMessages,
   useLoaded,
 } from './shared';
@@ -244,8 +245,8 @@ const ItemView: React.FC<{ item: FtdItem; onChange: (i: FtdItem) => void }> = ({
       {item.body && <p className='freethedream-about__text'>{item.body}</p>}
 
       {item.kind === 'need' && (
-        // Roughly how many it asks for and how many are coming; the amount
-        // is a guide, not a goal (Tal, 2026-10-17).
+        // How many are coming, of how many it asks for ("20+" when more is
+        // welcome).
         <div className='freethedream-status'>
           <span>
             {(item.covered ?? 0) === 0 ? (
@@ -255,11 +256,15 @@ const ItemView: React.FC<{ item: FtdItem; onChange: (i: FtdItem) => void }> = ({
               />
             ) : isCounted(item) ? (
               <FormattedMessage
-                id='freethedream.bring.coming_of_about'
-                defaultMessage='{coming} coming, of about {about}'
+                id='freethedream.bring.coming_of_plus'
+                defaultMessage='{coming} coming, of {wanted}'
                 values={{
                   coming: formatAmount(item.covered ?? 0, item.unit),
-                  about: formatAmount(item.quantity, item.unit),
+                  wanted: formatNeed(
+                    item.quantity,
+                    item.unit,
+                    item.more_welcome,
+                  ),
                 }}
               />
             ) : (
@@ -427,6 +432,7 @@ const ItemView: React.FC<{ item: FtdItem; onChange: (i: FtdItem) => void }> = ({
       <Talk
         subjectType='item'
         subjectId={item.id}
+        emergenceId={item.root.id}
         comments={item.comments}
         canComment={item.can.comment}
       />
