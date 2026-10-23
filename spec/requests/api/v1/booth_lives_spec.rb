@@ -23,7 +23,7 @@ RSpec.describe 'API V1 Booth Lives' do
       get '/api/v1/booth_lives', headers: headers
 
       expect(response).to have_http_status(200)
-      expect(response.parsed_body.pluck('id')).to eq [live, sooner, soon].map { |l| l.id.to_s }
+      expect(response.parsed_body.pluck('id')).to eq([live, sooner, soon].map { |l| l.id.to_s })
       expect(response.parsed_body.pluck('state')).to eq %w(live scheduled scheduled)
       expect(response.parsed_body.first['room_key']).to start_with('booth-')
     end

@@ -34,6 +34,34 @@ import { RemindButton } from './remind_button';
 const POLL_SET_MS = 20_000;
 const POLL_COUNT_MS = 15_000;
 
+// The configured Jitsi server, used only if it is a bare host name
+// (`meet.example.org`, optionally with a port), never anything that could
+// change what the script URL means.
+const JITSI_HOST = /^[a-z0-9.-]+(?::\d{1,5})?$/i.test(jitsiDomain)
+  ? jitsiDomain
+  : null;
+
+// Jitsi's external API script, loaded once per page however many rooms
+// open.
+let jitsiScript: Promise<void> | null = null;
+function loadJitsi(): Promise<void> {
+  if (!JITSI_HOST) return Promise.reject(new Error('No Jitsi server'));
+  jitsiScript ??= new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://${JITSI_HOST}/external_api.js`;
+    script.async = true;
+    script.onload = () => {
+      resolve();
+    };
+    script.onerror = () => {
+      jitsiScript = null;
+      reject(new Error('Jitsi failed to load'));
+    };
+    document.head.appendChild(script);
+  });
+  return jitsiScript;
+}
+
 interface JitsiApi {
   dispose: () => void;
   addListener: (event: string, callback: () => void) => void;
@@ -192,12 +220,12 @@ export const LiveRoom: React.FC<Props> = ({ id, announce }) => {
   // Who's in the room, from the Jitsi server (Huddle's lobby does the same).
   const roomKey = live?.room_key;
   useEffect(() => {
-    if (state !== 'live' || !roomKey) return undefined;
+    if (state !== 'live' || !roomKey || !JITSI_HOST) return undefined;
     let cancelled = false;
     const count = async () => {
       try {
         const res = await fetch(
-          `https://${jitsiDomain}/room?room=${encodeURIComponent(roomKey)}&domain=meet.jitsi`,
+          `https://${JITSI_HOST}/room?room=${encodeURIComponent(roomKey)}&domain=meet.jitsi`,
         );
         const people = res.ok ? ((await res.json()) as unknown[]) : [];
         if (!cancelled) setListeners(people.length);
@@ -215,18 +243,20 @@ export const LiveRoom: React.FC<Props> = ({ id, announce }) => {
 
   // The Jitsi script, once, from the configured server.
   useEffect(() => {
-    const src = `https://${jitsiDomain}/external_api.js`;
-    if (jitsiConstructor() ?? document.querySelector(`script[src="${src}"]`)) {
+    if (jitsiConstructor()) {
       setScriptReady(true);
-      return;
+      return undefined;
     }
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = true;
-    script.onload = () => {
-      setScriptReady(true);
+    let cancelled = false;
+    loadJitsi()
+      .then(() => {
+        if (!cancelled) setScriptReady(true);
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
     };
-    document.head.appendChild(script);
   }, []);
 
   const leaveRoom = useCallback(() => {
@@ -244,7 +274,8 @@ export const LiveRoom: React.FC<Props> = ({ id, announce }) => {
       jitsiRef.current?.dispose();
       const displayName =
         account?.get('display_name') ?? account?.get('username') ?? 'Kronker';
-      const jitsi = new Jitsi(jitsiDomain, {
+      if (!JITSI_HOST) return;
+      const jitsi = new Jitsi(JITSI_HOST, {
         roomName: live.room_key,
         parentNode: containerRef.current,
         userInfo: { displayName, email: '' },

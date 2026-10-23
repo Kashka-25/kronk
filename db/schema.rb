@@ -2776,7 +2776,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_200400) do
   add_foreign_key "bookmarks", "accounts", on_delete: :cascade
   add_foreign_key "bookmarks", "statuses", on_delete: :cascade
   add_foreign_key "booth_live_reminders", "accounts", on_delete: :cascade
-  add_foreign_key "booth_live_reminders", "booth_lives", on_delete: :cascade
+  add_foreign_key "booth_live_reminders", "booth_lives", column: "booth_live_id", on_delete: :cascade
   add_foreign_key "booth_lives", "accounts", on_delete: :cascade
   add_foreign_key "booth_set_artists", "accounts", on_delete: :cascade
   add_foreign_key "booth_set_artists", "booth_sets", on_delete: :cascade
