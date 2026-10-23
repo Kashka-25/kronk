@@ -35,6 +35,37 @@ RSpec.describe 'API V1 Booth Lives' do
     end
   end
 
+  describe 'GET /api/v1/booth_lives/now' do
+    let!(:live) { Fabricate(:booth_live, started_at: 5.minutes.ago) }
+
+    before { Fabricate(:booth_live, starts_at: 1.hour.from_now) }
+
+    it 'lists only what is live, for the home feed banner' do
+      get '/api/v1/booth_lives/now', headers: headers
+
+      expect(response.parsed_body.pluck('id')).to eq [live.id.to_s]
+    end
+
+    it 'shows nothing to someone tuned out of the Booth' do
+      KornerTuneOut.create!(account: user.account, korner_slug: 'booth', tuned_out_at: Time.current)
+
+      get '/api/v1/booth_lives/now', headers: headers
+
+      expect(response.parsed_body).to eq []
+    end
+  end
+
+  describe 'going live' do
+    it 'queues the nudge to everyone once, when the host starts' do
+      booth_live = Fabricate(:booth_live, account: user.account)
+
+      post "/api/v1/booth_lives/#{booth_live.id}/start", headers: headers
+      post "/api/v1/booth_lives/#{booth_live.id}/start", headers: headers
+
+      expect(Booth::LiveNotifyWorker).to have_enqueued_sidekiq_job(booth_live.id).once
+    end
+  end
+
   describe 'hosting' do
     it 'schedules, goes live and ends, owner only', :aggregate_failures do
       post '/api/v1/booth_lives', headers: headers, params: { title: 'Sunday session', genres: %w(house), starts_at: 1.day.from_now.iso8601 }

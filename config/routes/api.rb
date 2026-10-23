@@ -171,6 +171,10 @@ namespace :api, format: false do
 
     # Live sets: go live, end, and tell your feed (docs/spaces/booth.md).
     resources :booth_lives, only: [:index, :show, :create, :update, :destroy] do
+      # What's live now, for the home feed's banner.
+      collection do
+        get :now
+      end
       member do
         post :start
         post :finish

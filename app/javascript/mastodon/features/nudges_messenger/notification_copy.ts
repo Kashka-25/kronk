@@ -123,6 +123,10 @@ const sentences = defineMessages({
     defaultMessage: '{who} sent you a rose',
   },
   // No one in it: a head-count, not something a person did (Fomo noto).
+  boothWentLive: {
+    id: 'nudges.notification.booth.went_live',
+    defaultMessage: '{who} is live in the Booth now',
+  },
   huddleGathering: {
     id: 'nudges.notification.huddle.gathering',
     defaultMessage: 'People are huddling',
@@ -170,6 +174,7 @@ const SENTENCES: Record<string, MessageDescriptor | undefined> = {
   'booth.tagged': sentences.boothTagged,
   'map.challenged': sentences.mapChallenged,
   'rose.received': sentences.roseReceived,
+  'booth.went_live': sentences.boothWentLive,
   'huddle.gathering': sentences.huddleGathering,
   'wachuneed.offered': sentences.wachuneedOffered,
   'wachuneed.offer_accepted': sentences.wachuneedOfferAccepted,

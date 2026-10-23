@@ -48,12 +48,20 @@ class BoothLive < ApplicationRecord
     state == 'ended'
   end
 
+  # Going live tells everyone tuned in to the Booth (Booth::LiveNotifier),
+  # once; ending takes those nudges back.
   def start!
-    update!(started_at: Time.current) if started_at.nil?
+    return if started_at.present?
+
+    update!(started_at: Time.current)
+    Booth::LiveNotifyWorker.perform_async(id)
   end
 
   def finish!
-    update!(ended_at: Time.current) if ended_at.nil?
+    return if ended_at.present?
+
+    update!(ended_at: Time.current)
+    Booth::LiveNotifier.new(self).withdraw
   end
 
   private

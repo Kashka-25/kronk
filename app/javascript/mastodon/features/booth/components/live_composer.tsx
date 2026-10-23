@@ -199,7 +199,10 @@ export const LiveComposer: React.FC<Props> = ({ onCreated, onCancel }) => {
 
       <ComposeSection title={intl.formatMessage(messages.when)}>
         <ComposeRow>
-          <label className='compose-check'>
+          <label
+            className='compose-check'
+            aria-label={intl.formatMessage(messages.now)}
+          >
             <input
               type='radio'
               name='booth-live-when'
@@ -214,7 +217,10 @@ export const LiveComposer: React.FC<Props> = ({ onCreated, onCancel }) => {
               </span>
             </span>
           </label>
-          <label className='compose-check'>
+          <label
+            className='compose-check'
+            aria-label={intl.formatMessage(messages.later)}
+          >
             <input
               type='radio'
               name='booth-live-when'

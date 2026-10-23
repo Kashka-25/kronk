@@ -5,14 +5,22 @@
 class Api::V1::BoothLivesController < Api::BaseController
   REACH = Api::V1::BoothSetsController::REACH
 
-  before_action -> { doorkeeper_authorize! :read, :'read:statuses' }, only: [:index, :show]
-  before_action -> { doorkeeper_authorize! :write, :'write:statuses' }, except: [:index, :show]
+  before_action -> { doorkeeper_authorize! :read, :'read:statuses' }, only: [:index, :now, :show]
+  before_action -> { doorkeeper_authorize! :write, :'write:statuses' }, except: [:index, :now, :show]
   before_action :require_user!
-  before_action :set_booth_live, except: [:index, :create]
+  before_action :set_booth_live, except: [:index, :now, :create]
   before_action :authorize_owner!, only: [:update, :destroy, :start, :finish, :share]
 
   def index
     render json: BoothLive.includes(:account).listing, each_serializer: REST::BoothLiveSerializer
+  end
+
+  # What's live right now, for the home feed's banner. Nothing for someone
+  # tuned out of the Booth.
+  def now
+    return render json: [] if KornerTuneOut.exists?(account_id: current_account.id, korner_slug: 'booth')
+
+    render json: BoothLive.includes(:account).live.order(started_at: :desc).limit(5), each_serializer: REST::BoothLiveSerializer
   end
 
   def show
