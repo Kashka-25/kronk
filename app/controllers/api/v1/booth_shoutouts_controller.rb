@@ -21,7 +21,7 @@ class Api::V1::BoothShoutoutsController < Api::BaseController
       body: params[:body].to_s.strip,
       at_seconds: params[:at_seconds].presence&.to_i
     )
-    announce(shoutout)
+    announce
     render json: shoutout, serializer: REST::BoothShoutoutSerializer
   end
 
@@ -47,7 +47,7 @@ class Api::V1::BoothShoutoutsController < Api::BaseController
   end
 
   # Tell the artist, unless they're shouting out their own set.
-  def announce(shoutout)
+  def announce
     return if @booth_set.account_id == current_account.id
 
     Kronk::KornerEvents.publish(
