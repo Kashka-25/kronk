@@ -15,7 +15,7 @@ RSpec.describe 'API V1 Booth Shoutouts' do
     allow(Kronk::KornerEvents).to receive(:publish) { |name, **payload| events << [name, payload] }
   end
 
-  def shout(params, set: booth_set)
+  def shout(set = booth_set, **params)
     post "/api/v1/booth_sets/#{set.id}/shoutouts", headers: headers, params: params
   end
 
@@ -38,7 +38,7 @@ RSpec.describe 'API V1 Booth Shoutouts' do
   it 'does not nudge the artist about their own shoutout' do
     own = Fabricate(:booth_set, account: user.account, published: true)
 
-    shout({ body: 'Thanks for listening' }, set: own)
+    shout(own, body: 'Thanks for listening')
 
     expect(events).to be_empty
   end
